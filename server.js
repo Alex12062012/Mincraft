@@ -293,7 +293,7 @@ function updateMob(room, mob) {
 }
 
 // ─── WebSocket ────────────────────────────────────────────────────────────────
-const server =https://mincraft-cdd0.onrender.com/((req, res) => {
+const server = http.createServer((req, res) => {
   res.writeHead(200, {'Content-Type': 'text/plain'});
   res.end('Minecraft 2D Server OK');
 });
