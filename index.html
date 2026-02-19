@@ -1069,39 +1069,26 @@ function loop(ts){
 // ══════════════════════════════════════════════════════════════
 //  PHYSICS
 // ══════════════════════════════════════════════════════════════
-const GRAV=0.5, JUMP=-9, SPEED=4.5;
+const GRAV=0.4, JUMP=-8.5, SPEED=4.5;
 
 function update(dt){
   if(document.getElementById('death').classList.contains('show'))return;
   if(document.getElementById('chat-input-wrap').classList.contains('open'))return;
 
-  // ─ Horizontal input ─
+  // ─ Input horizontal ─
   let moveX=0;
   if(keys['KeyA']||keys['ArrowLeft']){moveX=-1;PL.dir=-1;}
   if(keys['KeyD']||keys['ArrowRight']){moveX=1;PL.dir=1;}
   PL.vx=moveX*SPEED;
 
-  // ─ On ground check (before gravity) ─
-  const feetY=PL.y+PL.h;
-  const groundB =isSolid(getB(Math.floor(PL.x+0.05),        Math.floor(feetY+0.05)));
-  const groundB2=isSolid(getB(Math.floor(PL.x+PL.w-0.1), Math.floor(feetY+0.05)));
-  PL.onGround = groundB || groundB2;
-
   // ─ Ladder ─
-  const midB=getB(Math.floor(PL.x+PL.w/2), Math.floor(PL.y+PL.h*0.5));
-  const onLadder=midB===B.LADDER;
-
+  const onLadder=getB(Math.floor(PL.x+PL.w/2),Math.floor(PL.y+PL.h/2))===B.LADDER;
   if(onLadder){
-    if(keys['KeyW']||keys['ArrowUp']||keys['Space'])PL.vy=-3.5;
-    else if(keys['KeyS']||keys['ArrowDown'])PL.vy=3.5;
-    else PL.vy*=0.8; // slow down on ladder
+    if(keys['KeyW']||keys['ArrowUp']||keys['Space'])PL.vy=-3;
+    else if(keys['KeyS']||keys['ArrowDown'])PL.vy=3;
+    else PL.vy=0;
   }else{
-    // Apply gravity only when not on ground (prevent accumulation)
-    if(!PL.onGround){
-      PL.vy=Math.min(PL.vy+GRAV,12);
-    } else {
-      if(PL.vy>0) PL.vy=0; // stop falling when on ground
-    }
+    PL.vy=Math.min(PL.vy+GRAV,15);
   }
 
   // ─ Jump ─
@@ -1110,40 +1097,48 @@ function update(dt){
     PL.onGround=false;
   }
 
-  // ─ Move X with sub-step ─
+  // ─ Move X ─
   const nx=PL.x+PL.vx*dt;
-  if(!checkCollX(nx,PL.y)){
-    PL.x=nx;
-  }else{
-    PL.vx=0;
-  }
+  if(!collidesX(nx,PL.y)) PL.x=nx;
 
-  // ─ Move Y with precise snap ─
-  if(PL.vy!==0){
-    const ny=PL.y+PL.vy*dt;
-    if(!checkCollY(PL.x,ny)){
-      PL.y=ny;
-    }else{
-      if(PL.vy>0){
-        // Snap feet to top of block below
-        PL.y=Math.ceil(PL.y+PL.h)-PL.h-0.001;
+  // ─ Move Y : sous-étapes pour éviter le tunneling et le rebond ─
+  const steps=4;
+  const stepDy=(PL.vy*dt)/steps;
+  PL.onGround=false;
+  for(let s=0;s<steps;s++){
+    const ny=PL.y+stepDy;
+    if(collidesY(PL.x,ny)){
+      if(stepDy>0){
+        // Chute : snap précis sur le dessus du bloc
+        PL.y=Math.floor(PL.y+PL.h)/1-PL.h; // align to block top
         PL.onGround=true;
       }else{
-        // Hit ceiling - snap head to bottom of block above
-        PL.y=Math.floor(PL.y)+1.001;
+        // Montée : snap sous le bloc du dessus
+        PL.y=Math.ceil(ny)+0.001;
       }
       PL.vy=0;
+      break;
+    }else{
+      PL.y=ny;
     }
   }
 
-  // Clamp world bounds
-  PL.y=Math.max(0,Math.min(WH-PL.h-0.01,PL.y));
+  // Clamp
+  PL.y=Math.max(0,Math.min(WH-PL.h-0.001,PL.y));
 
-  // ─ Block breaking (hold LMB) ─
+  // ─ Camera : colle exactement au joueur, pas de smooth vertical ─
+  cam.x=PL.x+PL.w/2;
+  cam.y=PL.y+PL.h/2;
+
+  // ─ Chunks ─
+  const vcx=Math.floor(cam.x/CHUNK);
+  for(let c=vcx-5;c<=vcx+5;c++)reqChunk(c);
+
+  // ─ Block breaking ─
   if(mDown&&!panelOpen()){
     const wp=s2w(mouseX,mouseY);
     const bx=Math.floor(wp.x),by=Math.floor(wp.y);
-    const dist=Math.hypot(bx+.5-(PL.x+PL.w/2), by+.5-(PL.y+PL.h/2));
+    const dist=Math.hypot(bx+.5-(PL.x+PL.w/2),by+.5-(PL.y+PL.h/2));
     if(dist<6.5){
       const b=getB(bx,by);
       if(b!==B.AIR&&b!==B.WATER&&b!==B.LAVA){
@@ -1162,45 +1157,30 @@ function update(dt){
     }else{breaking=null;}
   }else{breaking=null;}
 
-  // ─ Camera — smooth follow ─
-  const targetCamX=PL.x+PL.w/2;
-  const targetCamY=PL.y+PL.h/2;
-  cam.x+=(targetCamX-cam.x)*0.15;
-  cam.y+=(targetCamY-cam.y)*0.15;
-
-  // ─ Request chunks ─
-  const vcx=Math.floor(cam.x/CHUNK);
-  for(let c=vcx-5;c<=vcx+5;c++)reqChunk(c);
-
-  // ─ Send position ─
+  // ─ Envoyer position ─
   const now=performance.now();
-  if(now-lastMove>50){
-    send({type:'move',x:PL.x,y:PL.y,dir:PL.dir});
-    lastMove=now;
-  }
+  if(now-lastMove>50){send({type:'move',x:PL.x,y:PL.y,dir:PL.dir});lastMove=now;}
 
-  // ─ HUD update ─
   document.getElementById('coords').innerHTML=`X: ${Math.floor(PL.x)} &nbsp;Y: ${Math.floor(PL.y)}`;
 }
 
-function checkCollX(nx,y){
-  // check 3 heights on the body
-  for(const fy of [y+0.05,y+PL.h*.5,y+PL.h-0.05]){
-    if(isSolid(getB(Math.floor(nx),Math.floor(fy))))return true;
-    if(isSolid(getB(Math.floor(nx+PL.w-0.05),Math.floor(fy))))return true;
+function collidesX(nx,y){
+  for(const fy of [y+0.05, y+PL.h*0.5, y+PL.h-0.1]){
+    if(isSolid(getB(Math.floor(nx+0.01),      Math.floor(fy))))return true;
+    if(isSolid(getB(Math.floor(nx+PL.w-0.01), Math.floor(fy))))return true;
   }
   return false;
 }
 
-function checkCollY(x,ny){
-  if(ny<0)return true;
-  if(ny+PL.h>=WH-0.01)return true;
-  // bottom of player
-  const by=Math.floor(ny+PL.h);
-  if(isSolid(getB(Math.floor(x),by))||isSolid(getB(Math.floor(x+PL.w-0.05),by)))return true;
-  // top of player
-  const ty=Math.floor(ny);
-  if(isSolid(getB(Math.floor(x),ty))||isSolid(getB(Math.floor(x+PL.w-0.05),ty)))return true;
+function collidesY(x,ny){
+  if(ny<0||ny+PL.h>=WH)return true;
+  const lx=Math.floor(x+0.05), rx=Math.floor(x+PL.w-0.05);
+  // bottom
+  const by=Math.floor(ny+PL.h-0.01);
+  if(isSolid(getB(lx,by))||isSolid(getB(rx,by)))return true;
+  // top
+  const ty=Math.floor(ny+0.01);
+  if(isSolid(getB(lx,ty))||isSolid(getB(rx,ty)))return true;
   return false;
 }
 
