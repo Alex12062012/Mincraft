@@ -293,9 +293,23 @@ function updateMob(room, mob) {
 }
 
 // ─── WebSocket ────────────────────────────────────────────────────────────────
+const fs = require('fs');
+const path = require('path');
+
 const server = http.createServer((req, res) => {
-  res.writeHead(200, {'Content-Type': 'text/plain'});
-  res.end('Minecraft 2D Server OK');
+  if (req.url === '/' || req.url === '/index.html') {
+    try {
+      const html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+      res.end(html);
+    } catch (e) {
+      res.writeHead(500);
+      res.end('index.html introuvable sur le serveur');
+    }
+  } else {
+    res.writeHead(404);
+    res.end('Not found');
+  }
 });
 
 const wss = new WebSocket.Server({ server });
