@@ -87,59 +87,62 @@ function generateChunk(cx, seed) {
     const isDesert = biomeN > 0.3;
     const isSnowy = biomeN < -0.4;
 
+    // Y=0 = sky top, Y=WH-1 = bedrock bottom
+    // surfaceY is where grass/sand is, smaller Y = higher up = sky
     for (let y = 0; y < WORLD_HEIGHT; y++) {
       const key = `${lx},${y}`;
       let block = B.AIR;
       const caveV = octave(wx * 0.08, y * 0.08, 3, 0.5, 1);
 
-      if (y === 0) {
-        block = B.BEDROCK;
-      } else if (y >= surfaceY) {
-        block = y <= SEA_LEVEL ? B.WATER : B.AIR;
-      } else if (y === surfaceY - 1) {
-        block = isDesert ? B.SAND : isSnowy ? B.SNOW : B.GRASS;
-      } else if (y >= surfaceY - 4) {
-        block = isDesert ? B.SAND : B.DIRT;
-      } else {
+      if (y >= WORLD_HEIGHT - 3) {
+        block = B.BEDROCK; // bedrock at very bottom
+      } else if (y > surfaceY) {
+        // underground (below surface)
         if (caveV > 0.28) { block = B.AIR; }
-        else if (y < 8) { block = B.BEDROCK; }
+        else if (y >= WORLD_HEIGHT - 10) { block = B.BEDROCK; }
         else {
           const oreN = Math.abs(octave(wx * 2.3, y * 2.3, 2, 0.5, 3));
-          if (y < 18 && oreN > 0.36) block = B.DIAMOND_ORE;
-          else if (y < 32 && oreN > 0.33) block = B.GOLD_ORE;
+          const depth = WORLD_HEIGHT - y;
+          if (depth < 18 && oreN > 0.36) block = B.DIAMOND_ORE;
+          else if (depth < 32 && oreN > 0.33) block = B.GOLD_ORE;
           else if (oreN > 0.29) block = B.IRON_ORE;
           else if (oreN > 0.24) block = B.COAL_ORE;
           else block = B.STONE;
         }
+      } else if (y === surfaceY) {
+        block = isDesert ? B.SAND : isSnowy ? B.SNOW : B.GRASS;
+      } else if (y > surfaceY - 4) {
+        block = isDesert ? B.SAND : B.DIRT;
+      } else if (y > SEA_LEVEL && y < surfaceY) {
+        block = B.WATER; // water above surface but below sea level
       }
+      // y < surfaceY - 4 = sky = AIR (default)
       if (block !== B.AIR) blocks[key] = block;
     }
 
-    // Trees
-    if (!isDesert && !isSnowy && surfaceY > SEA_LEVEL) {
+    // Trees grow UP = decreasing Y
+    if (!isDesert && !isSnowy && surfaceY < SEA_LEVEL) {
       const treeN = octave(wx * 5.1, 200, 1, 0.5, 3);
       if (treeN > 0.38) {
-        const base = surfaceY - 1;
+        const base = surfaceY - 1; // one above surface
         for (let h = 0; h < 5; h++) blocks[`${lx},${base - h}`] = B.WOOD;
-        for (let dy = -2; dy <= 0; dy++) {
+        for (let dy = 0; dy <= 2; dy++) {
           for (let dx = -2; dx <= 2; dx++) {
-            if (Math.abs(dx) + Math.abs(dy) < 4) {
-              const k = `${lx + dx},${base - 5 + dy}`;
+            if (Math.abs(dx) + dy < 4) {
+              const k = `${lx + dx},${base - 5 - dy}`;
               if (!blocks[k]) blocks[k] = B.LEAVES;
             }
           }
         }
-        blocks[`${lx},${base - 7}`] = B.LEAVES;
-        if (!blocks[`${lx-1},${base-6}`]) blocks[`${lx-1},${base-6}`] = B.LEAVES;
-        if (!blocks[`${lx+1},${base-6}`]) blocks[`${lx+1},${base-6}`] = B.LEAVES;
+        if (!blocks[`${lx},${base-7}`]) blocks[`${lx},${base-7}`] = B.LEAVES;
       }
     }
 
-    // Cactus
-    if (isDesert && surfaceY > SEA_LEVEL) {
+    // Cactus grows UP = decreasing Y
+    if (isDesert && surfaceY < SEA_LEVEL) {
       const cacN = octave(wx * 7, 300, 1, 0.5, 2);
       if (cacN > 0.42) {
-        for (let h = 0; h < 3; h++) blocks[`${lx},${surfaceY - 1 - h}`] = B.CACTUS;
+        for (let h = 1; h <= 3; h++) blocks[`${lx},${surfaceY - h}`] = B.CACTUS;
       }
     }
   }
@@ -189,12 +192,16 @@ function setBlock(room, wx, wy, blockId) {
 }
 
 function findSurface(room, wx) {
-  for (let y = SEA_LEVEL - 15; y < WORLD_HEIGHT - 1; y++) {
-    if (!isPassable(getBlock(room, wx, y)) && isPassable(getBlock(room, wx, y - 1))) {
-      return y - 1;
+  // Y=0 is top (sky), Y=WH-1 is bottom (bedrock)
+  // Search from top down: find first AIR block above a solid block
+  for (let y = 1; y < WORLD_HEIGHT - 2; y++) {
+    const cur = getBlock(room, wx, y);
+    const below = getBlock(room, wx, y + 1);
+    if (isPassable(cur) && !isPassable(below)) {
+      return y; // stand here (air block just above solid)
     }
   }
-  return SEA_LEVEL - 1;
+  return SEA_LEVEL - 5;
 }
 
 // ─── Mob AI ───────────────────────────────────────────────────────────────────
