@@ -772,111 +772,166 @@ function drawToolIcon(ctx,id,s){
 }
 
 // ══════════════════════════════════════════════════════════════
-//  CHARACTERS — multiple skins
+//  MINECRAFT-STYLE 2D SKINS
 // ══════════════════════════════════════════════════════════════
 const SKINS=[
-  {body:'#3a6abf',pants:'#1a3a8f',hair:'#3a2010',name:'#60c0ff'},
-  {body:'#c04040',pants:'#802020',hair:'#101010',name:'#ff8080'},
-  {body:'#40a040',pants:'#205020',hair:'#604020',name:'#80ff80'},
-  {body:'#a040a0',pants:'#601060',hair:'#202020',name:'#e080e0'},
-  {body:'#c08020',pants:'#805010',hair:'#202020',name:'#ffc040'},
-  {body:'#40a0a0',pants:'#205050',hair:'#806040',name:'#80e0e0'},
+  // Steve-like
+  {head:'#c8a070',hair:'#5a3010',shirt:'#4a6cb0',pants:'#3a5a9a',belt:'#222',shoes:'#3a2010',name:'#7ab0ff'},
+  // Alex-like
+  {head:'#e0b888',hair:'#c06030',shirt:'#6aaa4a',pants:'#4a7a3a',belt:'#333',shoes:'#3a2010',name:'#aaffaa'},
+  // Creeper skin (fun)
+  {head:'#4aaa3a',hair:'#2a8a2a',shirt:'#3a9a3a',pants:'#2a7a2a',belt:'#1a5a1a',shoes:'#1a4a1a',name:'#aaffaa'},
+  // Diamond armor
+  {head:'#c8a070',hair:'#202020',shirt:'#4ae0e0',pants:'#30b0b0',belt:'#20a0a0',shoes:'#208888',name:'#80ffff'},
+  // Gold skin
+  {head:'#e0c070',hair:'#806020',shirt:'#d0a020',pants:'#b08010',belt:'#806010',shoes:'#604010',name:'#ffd700'},
+  // Dark/shadow
+  {head:'#c8a070',hair:'#101010',shirt:'#222',pants:'#111',belt:'#333',shoes:'#0a0a0a',name:'#aaaaaa'},
 ];
 
-function getSkin(playerId){
-  // deterministic skin from id hash
-  let h=0;for(const c of (playerId||''))h=(h*31+c.charCodeAt(0))&0xffff;
+function getSkin(pid){
+  let h=0;for(const c of(pid||''))h=(h*31+c.charCodeAt(0))&0xffff;
   return SKINS[h%SKINS.length];
 }
 
 function drawCharacter(ctx,sx,sy,tile,dir,skin,name,hp=20,maxHp=20){
-  const w=Math.floor(tile*0.75);
-  const h=Math.floor(tile*1.85);
-  const ox=Math.floor((tile-w)/2);
-  const headH=Math.floor(tile*0.42);
-  const bodyH=Math.floor(h*0.55);
-  const legH=h-bodyH;
+  // Pixel art Minecraft 2D character
+  // Dimensions in pixels (tile=32):
+  // Head: 8x8, Body: 8x12, Arms: 4x12, Legs: 4x12
+  const sc=tile/32; // scale factor
+  const px=(x)=>Math.round(sx+x*sc);
+  const py=(y)=>Math.round(sy+y*sc);
+  const pr=(x,y,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(px(x),py(y),Math.ceil(w*sc),Math.ceil(h*sc));};
 
   // Shadow
-  ctx.fillStyle='rgba(0,0,0,0.2)';
-  ctx.beginPath();ctx.ellipse(sx+tile/2,sy+h,w*.6,4,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='rgba(0,0,0,0.18)';
+  ctx.beginPath();ctx.ellipse(px(8),py(30),7*sc,2*sc,0,0,Math.PI*2);ctx.fill();
 
   // Legs
-  ctx.fillStyle=skin.pants;
-  ctx.fillRect(sx+ox,sy+bodyH,Math.floor(w*.45),legH);
-  ctx.fillRect(sx+ox+Math.floor(w*.55),sy+bodyH,Math.floor(w*.45),legH);
-  // leg shading
-  ctx.fillStyle='rgba(0,0,0,0.2)';
-  ctx.fillRect(sx+ox+Math.floor(w*.45),sy+bodyH,Math.floor(w*.1),legH);
+  pr(4,18,4,12,skin.pants);   // left leg
+  pr(9,18,4,12,skin.pants);   // right leg
+  pr(4,28,4,4,skin.shoes);    // left shoe
+  pr(9,28,4,4,skin.shoes);    // right shoe
+  // leg shadow
+  ctx.fillStyle='rgba(0,0,0,0.2)';ctx.fillRect(px(8),py(18),Math.ceil(1*sc),Math.ceil(12*sc));
 
-  // Body
-  ctx.fillStyle=skin.body;
-  ctx.fillRect(sx+ox,sy,w,bodyH);
-  ctx.fillStyle='rgba(255,255,255,0.12)';ctx.fillRect(sx+ox,sy,w,4);
-  ctx.fillStyle='rgba(0,0,0,0.15)';ctx.fillRect(sx+ox+w-3,sy,3,bodyH);
+  // Belt
+  pr(4,17,9,1,skin.belt);
 
-  // Head
-  const hx=sx+ox+Math.floor((w-headH*.9)/2);
-  const hy=sy-headH-2;
-  ctx.fillStyle='#f0c080';
-  ctx.fillRect(hx,hy,Math.floor(headH*.9),headH);
-  // hair
-  ctx.fillStyle=skin.hair;
-  ctx.fillRect(hx,hy,Math.floor(headH*.9),Math.floor(headH*.35));
-  // eyes
-  ctx.fillStyle='#1a1a1a';
-  if(dir>0){ctx.fillRect(hx+Math.floor(headH*.55),hy+Math.floor(headH*.4),4,4);}
-  else{ctx.fillRect(hx+Math.floor(headH*.15),hy+Math.floor(headH*.4),4,4);}
-  // mouth
-  ctx.fillStyle='#c07050';
-  ctx.fillRect(hx+Math.floor(headH*.3),hy+Math.floor(headH*.7),Math.floor(headH*.35),2);
+  // Body (shirt)
+  pr(4,6,9,12,skin.shirt);
+  // body highlight
+  ctx.fillStyle='rgba(255,255,255,0.1)';ctx.fillRect(px(4),py(6),Math.ceil(9*sc),Math.ceil(2*sc));
+  // body shadow
+  ctx.fillStyle='rgba(0,0,0,0.15)';ctx.fillRect(px(11),py(6),Math.ceil(2*sc),Math.ceil(12*sc));
 
-  // Nametag
+  // Arms
+  if(dir>0){
+    pr(0,6,4,12,skin.shirt);   // left arm (back)
+    pr(13,6,4,12,skin.shirt);  // right arm (front)
+    ctx.fillStyle='rgba(0,0,0,0.1)';ctx.fillRect(px(13),py(6),Math.ceil(4*sc),Math.ceil(12*sc));
+  }else{
+    pr(13,6,4,12,skin.shirt);  // right arm (back)
+    pr(0,6,4,12,skin.shirt);   // left arm (front)
+    ctx.fillStyle='rgba(0,0,0,0.1)';ctx.fillRect(px(0),py(6),Math.ceil(4*sc),Math.ceil(12*sc));
+  }
+
+  // Head background
+  pr(3,-10,11,11,skin.head);
+  // Hair / helmet top
+  pr(3,-10,11,4,skin.hair);
+  pr(3,-10,2,11,skin.hair);   // side hair
+
+  // Eyes
+  ctx.fillStyle='#fff';
+  if(dir>0){
+    pr(9,-7,3,3,'#fff');pr(9,-7,3,3,'#fff');
+    pr(10,-6,2,2,'#222');       // pupil right
+    pr(6,-7,2,2,'rgba(255,255,255,0.3)'); // left eye dim
+  }else{
+    pr(5,-7,3,3,'#fff');
+    pr(5,-6,2,2,'#222');        // pupil left
+    pr(9,-7,2,2,'rgba(255,255,255,0.3)');
+  }
+
+  // Mouth
+  pr(6,-3,5,1,'rgba(0,0,0,0.3)');
+
+  // Name tag
   if(name){
-    ctx.font='12px Inter,sans-serif';
+    ctx.font=`bold ${Math.round(11*sc)}px Inter,sans-serif`;
     const nw=ctx.measureText(name).width;
-    const nx=sx+tile/2-nw/2-4;
-    const ny=hy-18;
-    ctx.fillStyle='rgba(0,0,0,0.65)';ctx.fillRect(nx,ny,nw+8,16);
-    ctx.fillStyle=skin.name;ctx.fillText(name,nx+4,ny+12);
+    const nx=px(8)-nw/2-4, ny2=py(-14);
+    ctx.fillStyle='rgba(0,0,0,0.6)';ctx.fillRect(nx,ny2,nw+8,15*sc);
+    ctx.fillStyle=skin.name;ctx.fillText(name,nx+4,ny2+11*sc);
+  }
+
+  // HP bar (only if damaged)
+  if(hp<maxHp){
+    const bw=tile*.9,bh=3;
+    const bx=sx+(tile-bw)/2,by=py(-18);
+    ctx.fillStyle='#400';ctx.fillRect(bx,by,bw,bh);
+    ctx.fillStyle='#0f0';ctx.fillRect(bx,by,bw*(hp/maxHp),bh);
   }
 }
 
 function drawMob(ctx,sx,sy,tile,mob){
-  const isSpider=mob.type==='spider';
-  const w=Math.floor(tile*(isSpider?1.1:0.8));
-  const h=Math.floor(tile*(isSpider?0.65:1.8));
-  const ox=Math.floor((tile-w)/2);
+  const sc=tile/32;
+  const pr=(x,y,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(Math.round(sx+x*sc),Math.round(sy+y*sc),Math.ceil(w*sc),Math.ceil(h*sc));};
 
-  if(isSpider){
-    // body
-    ctx.fillStyle='#282828';ctx.fillRect(sx+ox+Math.floor(w*.25),sy+Math.floor(h*.15),Math.floor(w*.5),Math.floor(h*.7));
-    // head
-    ctx.fillStyle='#333';ctx.fillRect(sx+ox+(mob.dir>0?Math.floor(w*.65):0),sy+Math.floor(h*.2),Math.floor(w*.3),Math.floor(h*.55));
-    // eyes (red)
-    ctx.fillStyle='#ff2020';
-    const ex=mob.dir>0?sx+ox+Math.floor(w*.72):sx+ox+Math.floor(w*.05);
-    ctx.fillRect(ex,sy+Math.floor(h*.28),5,4);ctx.fillRect(ex+7,sy+Math.floor(h*.28),5,4);
-    // legs
-    ctx.strokeStyle='#222';ctx.lineWidth=2;
-    for(let i=0;i<4;i++){
-      const ly=sy+Math.floor(h*(.3+i*.12));
-      ctx.beginPath();ctx.moveTo(sx+ox+Math.floor(w*.25),ly);ctx.lineTo(sx+ox,ly-8+i*4);ctx.stroke();
-      ctx.beginPath();ctx.moveTo(sx+ox+Math.floor(w*.75),ly);ctx.lineTo(sx+ox+w,ly-8+i*4);ctx.stroke();
+  if(mob.type==='zombie'){
+    // Zombie - Minecraft style, torn clothes, green skin
+    // Legs
+    pr(4,18,4,12,'#2a5a2a');pr(9,18,4,12,'#2a5a2a');
+    pr(4,27,4,5,'#1a3a1a');pr(9,27,4,5,'#1a3a1a');
+    // Body
+    pr(4,6,9,12,'#3a7a3a');
+    // Arms - outstretched (zombie pose)
+    if(mob.dir>0){
+      pr(-4,4,4,10,'#3a7a3a'); // left arm stretched forward
+      pr(13,6,4,12,'#3a7a3a');
+    }else{
+      pr(13,4,4,10,'#3a7a3a');
+      pr(0,6,4,12,'#3a7a3a');
     }
-  }else{
-    ctx.fillStyle='#2a6a2a';ctx.fillRect(sx+ox,sy,w,Math.floor(h*.6));
-    ctx.fillStyle='#1a4a1a';ctx.fillRect(sx+ox,sy+Math.floor(h*.6),w,Math.floor(h*.4));
-    ctx.fillStyle='#3a8a3a';ctx.fillRect(sx+ox+Math.floor(w*.25),sy-Math.floor(tile*.38),Math.floor(w*.5),Math.floor(tile*.38));
+    // Head
+    pr(3,-10,11,11,'#4a9a4a');
+    pr(3,-10,11,3,'#2a6a2a'); // dark hair
+    // Eyes - red glowing
     ctx.fillStyle='#ff2020';
-    const ex=mob.dir>0?sx+ox+Math.floor(w*.62):sx+ox+Math.floor(w*.12);
-    ctx.fillRect(ex,sy+Math.floor(tile*.06),5,5);
+    if(mob.dir>0){pr(9,-7,3,3,'#ff2020');}else{pr(5,-7,3,3,'#ff2020');}
+    // Mouth (groan)
+    pr(5,-3,7,2,'#1a3a1a');
+  } else {
+    // Spider - 8 legs, small body
+    const bx=4,by=10;
+    // Legs (4 on each side)
+    ctx.strokeStyle='#1a1a1a';ctx.lineWidth=Math.ceil(1.5*sc);
+    for(let i=0;i<4;i++){
+      const ly=Math.round(sy+(by+i*3)*sc);
+      if(mob.dir>0){
+        ctx.beginPath();ctx.moveTo(Math.round(sx+bx*sc),ly);ctx.lineTo(Math.round(sx+(-6+i)*sc),ly-6*sc+i*3*sc);ctx.stroke();
+        ctx.beginPath();ctx.moveTo(Math.round(sx+(bx+14)*sc),ly);ctx.lineTo(Math.round(sx+(24+i)*sc),ly-6*sc+i*3*sc);ctx.stroke();
+      }else{
+        ctx.beginPath();ctx.moveTo(Math.round(sx+bx*sc),ly);ctx.lineTo(Math.round(sx+(-6+i)*sc),ly-6*sc+i*3*sc);ctx.stroke();
+        ctx.beginPath();ctx.moveTo(Math.round(sx+(bx+14)*sc),ly);ctx.lineTo(Math.round(sx+(24+i)*sc),ly-6*sc+i*3*sc);ctx.stroke();
+      }
+    }
+    // Body parts
+    pr(bx,by,14,10,'#222');      // abdomen
+    pr(bx+2,by-4,10,8,'#333');   // thorax
+    pr(bx+3,by-10,8,8,'#2a2a2a'); // head
+    // Eyes (multiple, red)
+    ctx.fillStyle='#ff2020';
+    if(mob.dir>0){pr(bx+9,by-8,2,2,'#ff2020');pr(bx+11,by-8,2,2,'#ff2020');}
+    else{pr(bx+3,by-8,2,2,'#ff2020');pr(bx+5,by-8,2,2,'#ff2020');}
   }
+
   // HP bar
-  const bw=tile*.9,bh=4;
-  const bx=sx+(tile-bw)/2,by=sy-12;
-  ctx.fillStyle='#400';ctx.fillRect(bx,by,bw,bh);
-  ctx.fillStyle='#0f0';ctx.fillRect(bx,by,bw*(mob.hp/20),bh);
+  const bw=tile*.9;
+  const bx2=sx+(tile-bw)/2;
+  ctx.fillStyle='#400';ctx.fillRect(bx2,sy-10,bw,4);
+  ctx.fillStyle='#0f0';ctx.fillRect(bx2,sy-10,bw*(mob.hp/20),4);
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -1128,13 +1183,13 @@ function checkCollX(nx,y){
 
 function checkCollY(x,ny){
   if(ny<0)return true;
-  if(ny+PL.h>=WH)return true;
-  // bottom
-  if(isSolid(getB(Math.floor(x),Math.floor(ny+PL.h)))||
-     isSolid(getB(Math.floor(x+PL.w-0.05),Math.floor(ny+PL.h))))return true;
-  // top
-  if(isSolid(getB(Math.floor(x),Math.floor(ny)))||
-     isSolid(getB(Math.floor(x+PL.w-0.05),Math.floor(ny))))return true;
+  if(ny+PL.h>=WH-0.01)return true;
+  // bottom of player
+  const by=Math.floor(ny+PL.h);
+  if(isSolid(getB(Math.floor(x),by))||isSolid(getB(Math.floor(x+PL.w-0.05),by)))return true;
+  // top of player
+  const ty=Math.floor(ny);
+  if(isSolid(getB(Math.floor(x),ty))||isSolid(getB(Math.floor(x+PL.w-0.05),ty)))return true;
   return false;
 }
 
@@ -1627,7 +1682,7 @@ canvas.addEventListener('mousedown',e=>{
         if(slot&&slot.i>0&&slot.i<=35){
           // Don't place in player body
           const px2=Math.floor(PL.x),py2=Math.floor(PL.y);
-          const inPlayer=(bx===px2||bx===px2)&&(by===py2||by===py2+1);
+          const inPlayer=(bx===px2||bx===px2+1)&&(by===py2||by===py2+1);
           if(!inPlayer){
             send({type:'place_block',x:bx,y:by,block:slot.i});
             setB(bx,by,slot.i);
