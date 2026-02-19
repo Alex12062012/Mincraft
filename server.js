@@ -81,68 +81,86 @@ function generateChunk(cx, seed) {
 
   for (let lx = 0; lx < CHUNK_SIZE; lx++) {
     const wx = cx * CHUNK_SIZE + lx;
-    const heightN = octave(wx, 0, 6, 0.5, 80);
-    const surfaceY = Math.floor(SEA_LEVEL + heightN * 25);
-    const biomeN = octave(wx * 0.3, 100, 2, 0.5, 60);
-    const isDesert = biomeN > 0.3;
-    const isSnowy = biomeN < -0.4;
 
-    // Y=0 = sky top, Y=WH-1 = bedrock bottom
-    // surfaceY is where grass/sand is, smaller Y = higher up = sky
+    // Surface height: Y increases downward. Surface around Y=55-75.
+    // heightN in [-1,1], surface = SEA_LEVEL + noise*20
+    const heightN = octave(wx, 0, 4, 0.5, 60);
+    const surfaceY = Math.floor(SEA_LEVEL + heightN * 18);
+    // surfaceY = the grass/sand block row
+
+    const biomeN = octave(wx * 0.25, 100, 2, 0.5, 80);
+    const isDesert = biomeN > 0.35;
+    const isSnowy  = biomeN < -0.4;
+
     for (let y = 0; y < WORLD_HEIGHT; y++) {
       const key = `${lx},${y}`;
       let block = B.AIR;
-      const caveV = octave(wx * 0.08, y * 0.08, 3, 0.5, 1);
 
-      if (y >= WORLD_HEIGHT - 3) {
-        block = B.BEDROCK; // bedrock at very bottom
-      } else if (y > surfaceY) {
-        // underground (below surface)
-        if (caveV > 0.28) { block = B.AIR; }
-        else if (y >= WORLD_HEIGHT - 10) { block = B.BEDROCK; }
-        else {
-          const oreN = Math.abs(octave(wx * 2.3, y * 2.3, 2, 0.5, 3));
-          const depth = WORLD_HEIGHT - y;
-          if (depth < 18 && oreN > 0.36) block = B.DIAMOND_ORE;
-          else if (depth < 32 && oreN > 0.33) block = B.GOLD_ORE;
-          else if (oreN > 0.29) block = B.IRON_ORE;
-          else if (oreN > 0.24) block = B.COAL_ORE;
+      // Bedrock: bottom 2 rows
+      if (y >= WORLD_HEIGHT - 2) {
+        block = B.BEDROCK;
+      }
+      // Underground (below surface)
+      else if (y > surfaceY) {
+        const caveV = octave(wx * 0.09, y * 0.09, 3, 0.5, 1);
+        if (caveV > 0.26) {
+          // cave = air
+          block = B.AIR;
+        } else {
+          // depth from bottom for ore distribution
+          const fromBottom = WORLD_HEIGHT - y;
+          const oreN = Math.abs(octave(wx * 3.1 + 17, y * 3.1 + 17, 2, 0.5, 4));
+          if      (fromBottom <= 16 && oreN > 0.30) block = B.DIAMOND_ORE;
+          else if (fromBottom <= 32 && oreN > 0.28) block = B.GOLD_ORE;
+          else if (oreN > 0.18) block = B.IRON_ORE;   // iron very common
+          else if (oreN > 0.10) block = B.COAL_ORE;   // coal super common
           else block = B.STONE;
         }
-      } else if (y === surfaceY) {
-        block = isDesert ? B.SAND : isSnowy ? B.SNOW : B.GRASS;
-      } else if (y > surfaceY - 4) {
-        block = isDesert ? B.SAND : B.DIRT;
-      } else if (y > SEA_LEVEL && y < surfaceY) {
-        block = B.WATER; // water above surface but below sea level
       }
-      // y < surfaceY - 4 = sky = AIR (default)
+      // Surface row
+      else if (y === surfaceY) {
+        block = isDesert ? B.SAND : isSnowy ? B.SNOW : B.GRASS;
+      }
+      // Shallow underground (dirt layer, 3 rows)
+      else if (y > surfaceY - 4) {
+        block = isDesert ? B.SAND : B.DIRT;
+      }
+      // Water: fill air gaps between surface and sea level
+      else if (surfaceY > SEA_LEVEL && y > SEA_LEVEL && y < surfaceY) {
+        block = B.WATER;
+      }
+      // else: sky / air above surface = AIR (default)
+
       if (block !== B.AIR) blocks[key] = block;
     }
 
-    // Trees grow UP = decreasing Y
-    if (!isDesert && !isSnowy && surfaceY < SEA_LEVEL) {
-      const treeN = octave(wx * 5.1, 200, 1, 0.5, 3);
-      if (treeN > 0.38) {
-        const base = surfaceY - 1; // one above surface
+    // Trees: grow upward (Y decreasing) from surface
+    if (!isDesert && !isSnowy && surfaceY <= SEA_LEVEL) {
+      const treeN = octave(wx * 5.7 + 300, 0, 1, 0.5, 4);
+      if (treeN > 0.35) {
+        const base = surfaceY - 1; // trunk starts just above grass
+        // Trunk (5 blocks up = Y decreasing)
         for (let h = 0; h < 5; h++) blocks[`${lx},${base - h}`] = B.WOOD;
-        for (let dy = 0; dy <= 2; dy++) {
+        // Leaves crown
+        for (let dy = 0; dy <= 3; dy++) {
           for (let dx = -2; dx <= 2; dx++) {
-            if (Math.abs(dx) + dy < 4) {
-              const k = `${lx + dx},${base - 5 - dy}`;
+            if (Math.abs(dx) + dy <= 3) {
+              const k = `${lx + dx},${base - 4 - dy}`;
               if (!blocks[k]) blocks[k] = B.LEAVES;
             }
           }
         }
-        if (!blocks[`${lx},${base-7}`]) blocks[`${lx},${base-7}`] = B.LEAVES;
       }
     }
 
-    // Cactus grows UP = decreasing Y
-    if (isDesert && surfaceY < SEA_LEVEL) {
-      const cacN = octave(wx * 7, 300, 1, 0.5, 2);
+    // Cactus in desert
+    if (isDesert && surfaceY <= SEA_LEVEL) {
+      const cacN = octave(wx * 8 + 500, 0, 1, 0.5, 3);
       if (cacN > 0.42) {
-        for (let h = 1; h <= 3; h++) blocks[`${lx},${surfaceY - h}`] = B.CACTUS;
+        for (let h = 1; h <= 3; h++) {
+          if (!blocks[`${lx},${surfaceY - h}`])
+            blocks[`${lx},${surfaceY - h}`] = B.CACTUS;
+        }
       }
     }
   }
@@ -192,13 +210,10 @@ function setBlock(room, wx, wy, blockId) {
 }
 
 function findSurface(room, wx) {
-  // Y=0 is top (sky), Y=WH-1 is bottom (bedrock)
-  // Search from top down: find first AIR block above a solid block
-  for (let y = 1; y < WORLD_HEIGHT - 2; y++) {
-    const cur = getBlock(room, wx, y);
-    const below = getBlock(room, wx, y + 1);
-    if (isPassable(cur) && !isPassable(below)) {
-      return y; // stand here (air block just above solid)
+  // Scan from top (y=0) downward, find first solid block, return y-1 (air above it)
+  for (let y = 5; y < WORLD_HEIGHT - 5; y++) {
+    if (!isPassable(getBlock(room, wx, y)) && isPassable(getBlock(room, wx, y - 1))) {
+      return y - 1;
     }
   }
   return SEA_LEVEL - 5;
