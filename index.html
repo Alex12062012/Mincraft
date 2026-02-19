@@ -1077,22 +1077,22 @@ function update(dt){
 
   // ─ Input horizontal ─
   let moveX=0;
-  if(keys['KeyA']||keys['ArrowLeft']){moveX=-1;PL.dir=-1;}
-  if(keys['KeyD']||keys['ArrowRight']){moveX=1;PL.dir=1;}
+  if(keys['KeyA']||keys['ArrowLeft'] ||keys['q']||keys['a']){moveX=-1;PL.dir=-1;}
+  if(keys['KeyD']||keys['ArrowRight']||keys['d']){moveX=1;PL.dir=1;}
   PL.vx=moveX*SPEED;
 
   // ─ Ladder ─
   const onLadder=getB(Math.floor(PL.x+PL.w/2),Math.floor(PL.y+PL.h/2))===B.LADDER;
   if(onLadder){
-    if(keys['KeyW']||keys['ArrowUp']||keys['Space'])PL.vy=-3;
-    else if(keys['KeyS']||keys['ArrowDown'])PL.vy=3;
+    if(keys['KeyW']||keys['ArrowUp']||keys['Space']||keys['z']||keys['w'])PL.vy=-3;
+    else if(keys['KeyS']||keys['ArrowDown']||keys['s'])PL.vy=3;
     else PL.vy=0;
   }else{
     PL.vy=Math.min(PL.vy+GRAV,15);
   }
 
   // ─ Jump ─
-  if((keys['KeyW']||keys['ArrowUp']||keys['Space'])&&PL.onGround&&!onLadder){
+  if((keys['KeyW']||keys['ArrowUp']||keys[' ']||keys['z']||keys['w'])&&PL.onGround&&!onLadder){
     PL.vy=JUMP;
     PL.onGround=false;
   }
@@ -1615,6 +1615,7 @@ document.addEventListener('mousemove',e=>{
 // ══════════════════════════════════════════════════════════════
 document.addEventListener('keydown',e=>{
   keys[e.code]=true;
+  keys[e.key.toLowerCase()]=true;
   if(!inGame)return;
   const chatOpen=document.getElementById('chat-input-wrap').classList.contains('open');
   if(e.code==='KeyT'&&!chatOpen){e.preventDefault();openChat();return;}
@@ -1648,7 +1649,7 @@ document.addEventListener('keydown',e=>{
     if(n>=0&&n<=8){activeSlot=n;refreshHotbar();}
   }
 });
-document.addEventListener('keyup',e=>{keys[e.code]=false;});
+document.addEventListener('keyup',e=>{keys[e.code]=false;keys[e.key.toLowerCase()]=false;});
 
 document.addEventListener('wheel',e=>{
   if(!inGame)return;
