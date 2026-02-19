@@ -1069,7 +1069,7 @@ function loop(ts){
 // ══════════════════════════════════════════════════════════════
 //  PHYSICS
 // ══════════════════════════════════════════════════════════════
-const GRAV=0.45, JUMP=-8, SPEED=4.5;
+const GRAV=0.5, JUMP=-9, SPEED=4.5;
 
 function update(dt){
   if(document.getElementById('death').classList.contains('show'))return;
@@ -1081,60 +1081,69 @@ function update(dt){
   if(keys['KeyD']||keys['ArrowRight']){moveX=1;PL.dir=1;}
   PL.vx=moveX*SPEED;
 
+  // ─ On ground check (before gravity) ─
+  const feetY=PL.y+PL.h;
+  const groundB =isSolid(getB(Math.floor(PL.x+0.05),        Math.floor(feetY+0.05)));
+  const groundB2=isSolid(getB(Math.floor(PL.x+PL.w-0.1), Math.floor(feetY+0.05)));
+  PL.onGround = groundB || groundB2;
+
   // ─ Ladder ─
-  const midB=getB(Math.floor(PL.x),Math.floor(PL.y+0.9));
+  const midB=getB(Math.floor(PL.x+PL.w/2), Math.floor(PL.y+PL.h*0.5));
   const onLadder=midB===B.LADDER;
 
   if(onLadder){
-    if(keys['KeyW']||keys['ArrowUp'])PL.vy=-3;
-    else if(keys['KeyS']||keys['ArrowDown'])PL.vy=3;
-    else PL.vy=0;
+    if(keys['KeyW']||keys['ArrowUp']||keys['Space'])PL.vy=-3.5;
+    else if(keys['KeyS']||keys['ArrowDown'])PL.vy=3.5;
+    else PL.vy*=0.8; // slow down on ladder
   }else{
-    PL.vy=Math.min(PL.vy+GRAV,14);
+    // Apply gravity only when not on ground (prevent accumulation)
+    if(!PL.onGround){
+      PL.vy=Math.min(PL.vy+GRAV,12);
+    } else {
+      if(PL.vy>0) PL.vy=0; // stop falling when on ground
+    }
   }
 
   // ─ Jump ─
-  // On ground = block directly below player feet is solid
-  const feetY=PL.y+PL.h;
-  const groundB=getB(Math.floor(PL.x),Math.floor(feetY));
-  const groundB2=getB(Math.floor(PL.x+PL.w-0.05),Math.floor(feetY));
-  PL.onGround=isSolid(groundB)||isSolid(groundB2);
-
   if((keys['KeyW']||keys['ArrowUp']||keys['Space'])&&PL.onGround&&!onLadder){
     PL.vy=JUMP;
     PL.onGround=false;
   }
 
-  // ─ Move X ─
+  // ─ Move X with sub-step ─
   const nx=PL.x+PL.vx*dt;
-  // Check left and right edges, top/bottom of body
-  const colX=checkCollX(nx,PL.y);
-  if(!colX){PL.x=nx;}else{PL.vx=0;}
-
-  // ─ Move Y ─
-  const ny=PL.y+PL.vy*dt;
-  const colY=checkCollY(PL.x,ny);
-  if(!colY){
-    PL.y=ny;
+  if(!checkCollX(nx,PL.y)){
+    PL.x=nx;
   }else{
-    if(PL.vy>0){
-      // landing: snap to ground
-      PL.y=Math.floor(PL.y+PL.h)-PL.h;
-      PL.onGround=true;
-    }else{
-      PL.y=Math.floor(PL.y)+1;
-    }
-    PL.vy=0;
+    PL.vx=0;
   }
 
-  // Clamp
+  // ─ Move Y with precise snap ─
+  if(PL.vy!==0){
+    const ny=PL.y+PL.vy*dt;
+    if(!checkCollY(PL.x,ny)){
+      PL.y=ny;
+    }else{
+      if(PL.vy>0){
+        // Snap feet to top of block below
+        PL.y=Math.ceil(PL.y+PL.h)-PL.h-0.001;
+        PL.onGround=true;
+      }else{
+        // Hit ceiling - snap head to bottom of block above
+        PL.y=Math.floor(PL.y)+1.001;
+      }
+      PL.vy=0;
+    }
+  }
+
+  // Clamp world bounds
   PL.y=Math.max(0,Math.min(WH-PL.h-0.01,PL.y));
 
   // ─ Block breaking (hold LMB) ─
   if(mDown&&!panelOpen()){
     const wp=s2w(mouseX,mouseY);
     const bx=Math.floor(wp.x),by=Math.floor(wp.y);
-    const dist=Math.hypot(bx+.5-PL.x-.4,by+.5-PL.y-.9);
+    const dist=Math.hypot(bx+.5-(PL.x+PL.w/2), by+.5-(PL.y+PL.h/2));
     if(dist<6.5){
       const b=getB(bx,by);
       if(b!==B.AIR&&b!==B.WATER&&b!==B.LAVA){
@@ -1153,9 +1162,11 @@ function update(dt){
     }else{breaking=null;}
   }else{breaking=null;}
 
-  // ─ Camera ─
-  cam.x=PL.x+PL.w/2;
-  cam.y=PL.y+PL.h/2;
+  // ─ Camera — smooth follow ─
+  const targetCamX=PL.x+PL.w/2;
+  const targetCamY=PL.y+PL.h/2;
+  cam.x+=(targetCamX-cam.x)*0.15;
+  cam.y+=(targetCamY-cam.y)*0.15;
 
   // ─ Request chunks ─
   const vcx=Math.floor(cam.x/CHUNK);
