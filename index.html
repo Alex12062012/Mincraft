@@ -701,49 +701,186 @@ function drawToolIcon(ctx,id,s){
 }
 
 // ══════════════════════════════════════════════════════════════
-//  CHARACTER & MOB RENDERING
+//  CHARACTER & MOB RENDERING — Steve papercraft style
 // ══════════════════════════════════════════════════════════════
+
+// Walk animation timer (global, increments in render)
+let walkTime=0;
+
+// Steve-like skins: each color is a flat face color like Minecraft papercraft
 const SKINS=[
-  {head:'#c8a070',hair:'#5a3010',shirt:'#4a6cb0',pants:'#3a5a9a',belt:'#222',shoes:'#3a2010',name:'#7ab0ff'},
-  {head:'#e0b888',hair:'#c06030',shirt:'#6aaa4a',pants:'#4a7a3a',belt:'#333',shoes:'#3a2010',name:'#aaffaa'},
-  {head:'#c8a070',hair:'#202020',shirt:'#4ae0e0',pants:'#30b0b0',belt:'#20a0a0',shoes:'#208888',name:'#80ffff'},
-  {head:'#e0c070',hair:'#806020',shirt:'#d0a020',pants:'#b08010',belt:'#806010',shoes:'#604010',name:'#ffd700'},
-  {head:'#c8a070',hair:'#101010',shirt:'#222',pants:'#111',belt:'#333',shoes:'#0a0a0a',name:'#aaaaaa'},
+  // Classic Steve
+  { face:'#c8a46e', hair:'#4a2e0a', shirt:'#3b5fa0', shirtD:'#2a4a80',
+    pants:'#3a5090', pantsD:'#2a3a70', shoes:'#3a1a0a', name:'#7ab0ff' },
+  // Alex (green shirt)
+  { face:'#e0b87a', hair:'#b05020', shirt:'#5a9a3a', shirtD:'#3a7020',
+    pants:'#3a6028', pantsD:'#2a4818', shoes:'#3a1a0a', name:'#aaffaa' },
+  // Diamond armor
+  { face:'#c8a46e', hair:'#202020', shirt:'#30c8c8', shirtD:'#208888',
+    pants:'#28a8a8', pantsD:'#186868', shoes:'#108888', name:'#80ffff' },
+  // Gold
+  { face:'#e0c070', hair:'#604010', shirt:'#c89020', shirtD:'#906000',
+    pants:'#a07010', pantsD:'#704800', shoes:'#502808', name:'#ffd700' },
+  // Dark/shadow
+  { face:'#b8906a', hair:'#0a0a0a', shirt:'#1a1a1a', shirtD:'#0a0a0a',
+    pants:'#111', pantsD:'#080808', shoes:'#050505', name:'#aaaaaa' },
 ];
 function getSkin(pid){let h=0;for(const c of(pid||''))h=(h*31+c.charCodeAt(0))&0xffff;return SKINS[h%SKINS.length];}
 
-function drawCharacter(ctx,sx,sy,tile,dir,skin,name,hp=20,maxHp=20){
-  const sc=tile/32;
-  const px=(x)=>Math.round(sx+x*sc);
-  const py=(y)=>Math.round(sy+y*sc);
-  const pr=(x,y,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(px(x),py(y),Math.ceil(w*sc),Math.ceil(h*sc));};
-  ctx.fillStyle='rgba(0,0,0,0.18)';
-  ctx.beginPath();ctx.ellipse(px(8),py(30),7*sc,2*sc,0,0,Math.PI*2);ctx.fill();
-  pr(4,18,4,12,skin.pants);pr(9,18,4,12,skin.pants);
-  pr(4,28,4,4,skin.shoes);pr(9,28,4,4,skin.shoes);
-  ctx.fillStyle='rgba(0,0,0,0.2)';ctx.fillRect(px(8),py(18),Math.ceil(1*sc),Math.ceil(12*sc));
-  pr(4,17,9,1,skin.belt);
-  pr(4,6,9,12,skin.shirt);
-  ctx.fillStyle='rgba(255,255,255,0.1)';ctx.fillRect(px(4),py(6),Math.ceil(9*sc),Math.ceil(2*sc));
-  ctx.fillStyle='rgba(0,0,0,0.15)';ctx.fillRect(px(11),py(6),Math.ceil(2*sc),Math.ceil(12*sc));
-  if(dir>0){pr(0,6,4,12,skin.shirt);pr(13,6,4,12,skin.shirt);}
-  else{pr(13,6,4,12,skin.shirt);pr(0,6,4,12,skin.shirt);}
-  pr(3,-10,11,11,skin.head);pr(3,-10,11,4,skin.hair);pr(3,-10,2,11,skin.hair);
-  ctx.fillStyle='#fff';
-  if(dir>0){pr(9,-7,3,3,'#fff');pr(10,-6,2,2,'#222');pr(6,-7,2,2,'rgba(255,255,255,0.3)');}
-  else{pr(5,-7,3,3,'#fff');pr(5,-6,2,2,'#222');pr(9,-7,2,2,'rgba(255,255,255,0.3)');}
-  pr(6,-3,5,1,'rgba(0,0,0,0.3)');
-  if(name){
-    ctx.font=`bold ${Math.round(11*sc)}px Inter,sans-serif`;
-    const nw=ctx.measureText(name).width;
-    const nx=px(8)-nw/2-4,ny2=py(-14);
-    ctx.fillStyle='rgba(0,0,0,0.6)';ctx.fillRect(nx,ny2,nw+8,15*sc);
-    ctx.fillStyle=skin.name;ctx.fillText(name,nx+4,ny2+11*sc);
+// Draw a flat-shaded rectangle (light top/left, dark right/bottom = papercraft cube face)
+function drawCharacter(ctx, sx, sy, tile, dir, skin, name, hp=20, maxHp=20, isWalking=false){
+  // Scale: character is exactly 2 tiles tall (like Minecraft: 2 blocks)
+  // Total height = 2*tile. We draw from sy (top of feet) upward.
+  // Breakdown (in tile units, origin = top of character):
+  //   Head:  0.0 → 0.5  (8px out of 16px per tile = half tile)
+  //   Body:  0.5 → 1.25
+  //   Legs:  1.25 → 2.0
+  // Width ~= 0.5 tile for body, 0.25 per limb
+
+  const T=tile; // 1 tile = 32px
+  const sc=T/32;
+
+  // Walk swing: arms and legs swing when moving
+  const swing = isWalking ? Math.sin(walkTime*8)*0.18 : 0; // radians
+
+  // Helper: filled rect relative to (sx, sy) in pixel coords
+  const r=(x,y,w,h,col)=>{
+    ctx.fillStyle=col;
+    ctx.fillRect(Math.round(sx+x),Math.round(sy+y),Math.ceil(w),Math.ceil(h));
+  };
+  // Helper: dark-shaded rect (right/bottom faces of cube)
+  const rd=(x,y,w,h,col,dark)=>{
+    r(x,y,w,h,col);
+    // right shade
+    ctx.fillStyle=dark;
+    ctx.fillRect(Math.round(sx+x+w-Math.ceil(sc*1.5)),Math.round(sy+y),Math.ceil(sc*1.5),Math.ceil(h));
+    // bottom shade
+    ctx.fillRect(Math.round(sx+x),Math.round(sy+y+h-Math.ceil(sc*1.5)),Math.ceil(w),Math.ceil(sc*1.5));
+  };
+
+  // Pixel sizes (all in px)
+  const HW=8*sc,HH=8*sc;      // head width/height
+  const BW=8*sc,BH=12*sc;     // body width/height
+  const LW=4*sc,LH=12*sc;     // leg width/height
+  const AW=4*sc,AH=12*sc;     // arm width/height
+
+  // Base positions (sx,sy is top-left of the 1-tile-wide, 2-tile-tall bounding box)
+  // Center the character horizontally in the tile
+  const cx=T/2; // center x offset from sx
+
+  // Y positions (from sy = world top of character)
+  const headY=0;
+  const bodyY=HH;
+  const legY=HH+BH;
+
+  // Head X (centered)
+  const headX=cx-HW/2;
+
+  // Body X (centered, body = 8px wide)
+  const bodyX=cx-BW/2;
+
+  // Shadow
+  ctx.fillStyle='rgba(0,0,0,0.2)';
+  ctx.beginPath();
+  ctx.ellipse(Math.round(sx+cx), Math.round(sy+HH+BH+LH+1*sc), 7*sc, 2*sc, 0, 0, Math.PI*2);
+  ctx.fill();
+
+  // ── LEGS (drawn before body so body overlaps) ──
+  // Leg swing: front leg forward, back leg backward
+  const legSwing=swing;
+  const legOffY=Math.abs(Math.sin(walkTime*8))*1.5*sc; // slight vertical bob
+
+  // Left leg (back when facing right, front when facing left)
+  const leftLegSwing = dir>0 ? -legSwing : legSwing;
+  ctx.save();
+  ctx.translate(Math.round(sx+bodyX), Math.round(sy+legY));
+  ctx.rotate(leftLegSwing);
+  ctx.translate(-Math.round(sx+bodyX), -Math.round(sy+legY));
+  rd(bodyX, legY, LW, LH, skin.pants, skin.pantsD);
+  // Shoe
+  r(bodyX, legY+LH-2*sc, LW, 2*sc, skin.shoes);
+  ctx.restore();
+
+  // Right leg (front when facing right)
+  const rightLegSwing = dir>0 ? legSwing : -legSwing;
+  ctx.save();
+  ctx.translate(Math.round(sx+bodyX+LW+1*sc), Math.round(sy+legY));
+  ctx.rotate(rightLegSwing);
+  ctx.translate(-Math.round(sx+bodyX+LW+1*sc), -Math.round(sy+legY));
+  rd(bodyX+LW, legY, LW, LH, skin.pants, skin.pantsD);
+  r(bodyX+LW, legY+LH-2*sc, LW, 2*sc, skin.shoes);
+  ctx.restore();
+
+  // ── BACK ARM ──
+  const armY=bodyY;
+  const backArmSwing = dir>0 ? legSwing : -legSwing; // opposite to front
+  const backArmX = dir>0 ? bodyX-AW : bodyX+BW;
+  ctx.save();
+  ctx.translate(Math.round(sx+backArmX+AW/2), Math.round(sy+armY));
+  ctx.rotate(backArmSwing);
+  ctx.translate(-Math.round(sx+backArmX+AW/2), -Math.round(sy+armY));
+  // Back arm slightly darker
+  r(backArmX, armY, AW, AH, skin.shirtD);
+  ctx.restore();
+
+  // ── BODY ──
+  rd(bodyX, bodyY, BW, BH, skin.shirt, skin.shirtD);
+  // Belt line
+  r(bodyX, bodyY+BH-2*sc, BW, 2*sc, '#333');
+
+  // ── FRONT ARM ──
+  const frontArmSwing = dir>0 ? -legSwing : legSwing;
+  const frontArmX = dir>0 ? bodyX+BW : bodyX-AW;
+  ctx.save();
+  ctx.translate(Math.round(sx+frontArmX+AW/2), Math.round(sy+armY));
+  ctx.rotate(frontArmSwing);
+  ctx.translate(-Math.round(sx+frontArmX+AW/2), -Math.round(sy+armY));
+  rd(frontArmX, armY, AW, AH, skin.shirt, skin.shirtD);
+  ctx.restore();
+
+  // ── HEAD ──
+  // Main face
+  rd(headX, headY, HW, HH, skin.face, skin.hair);
+  // Hair top strip
+  r(headX, headY, HW, 2*sc, skin.hair);
+  // Hair side strip (direction-dependent)
+  if(dir>0) r(headX, headY, 1.5*sc, HH, skin.hair);
+  else r(headX+HW-1.5*sc, headY, 1.5*sc, HH, skin.hair);
+
+  // Eyes — 2 eyes visible from side, slightly different positions
+  if(dir>0){
+    // Right-facing: right eye is front, left eye is dim
+    r(headX+HW-3*sc, headY+3*sc, 2*sc, 2*sc, '#fff');
+    r(headX+HW-2.5*sc, headY+3.5*sc, 1.5*sc, 1.5*sc, '#222');
+    r(headX+2*sc, headY+3*sc, 1.5*sc, 2*sc, 'rgba(255,255,255,0.25)');
+  } else {
+    r(headX+1*sc, headY+3*sc, 2*sc, 2*sc, '#fff');
+    r(headX+1*sc, headY+3.5*sc, 1.5*sc, 1.5*sc, '#222');
+    r(headX+HW-3.5*sc, headY+3*sc, 1.5*sc, 2*sc, 'rgba(255,255,255,0.25)');
   }
+  // Nose dot
+  r(headX+HW/2-0.5*sc, headY+HH*0.55, 1*sc, 1*sc, 'rgba(0,0,0,0.25)');
+  // Mouth
+  r(headX+HW*0.25, headY+HH*0.72, HW*0.5, 1*sc, 'rgba(0,0,0,0.3)');
+
+  // ── NAME TAG ──
+  if(name){
+    ctx.font=`bold ${Math.round(10*sc)}px Inter,sans-serif`;
+    const nw=ctx.measureText(name).width;
+    const tagX=sx+cx-nw/2-4;
+    const tagY=sy-14*sc;
+    ctx.fillStyle='rgba(0,0,0,0.6)';
+    ctx.fillRect(Math.round(tagX),Math.round(tagY),Math.ceil(nw+8),Math.ceil(12*sc));
+    ctx.fillStyle=skin.name;
+    ctx.fillText(name,Math.round(tagX+4),Math.round(tagY+10*sc));
+  }
+
+  // ── HP BAR ──
   if(hp<maxHp){
-    const bw=tile*.9,bh=3;const bx=sx+(tile-bw)/2,by=py(-18);
-    ctx.fillStyle='#400';ctx.fillRect(bx,by,bw,bh);
-    ctx.fillStyle='#0f0';ctx.fillRect(bx,by,bw*(hp/maxHp),bh);
+    const bw=T*0.9,bh=3;
+    const bx=sx+T/2-bw/2, by=sy-6*sc;
+    ctx.fillStyle='#400';ctx.fillRect(Math.round(bx),Math.round(by),Math.ceil(bw),bh);
+    ctx.fillStyle='#0f0';ctx.fillRect(Math.round(bx),Math.round(by),Math.ceil(bw*(hp/maxHp)),bh);
   }
 }
 
@@ -994,11 +1131,11 @@ function update(dt){
 
   PL.y=Math.max(0,Math.min(WH-PL.h-0.001,PL.y));
 
-  // ─ Camera: smooth vertical, instant horizontal ─
+  // ─ Camera: slow smooth Y = "basculement" camera feeling, no snap ─
   const targetCX=PL.x+PL.w/2;
   const targetCY=PL.y+PL.h/2;
-  cam.x=targetCX; // instant X
-  cam.y+=(targetCY-cam.y)*0.15; // smooth Y to prevent jump flicker
+  cam.x+=(targetCX-cam.x)*0.3;
+  cam.y+=(targetCY-cam.y)*0.08;
 
   // ─ Chunks ─
   const vcx=Math.floor(cam.x/CHUNK);
@@ -1151,11 +1288,16 @@ function render(){
     ctx.fillStyle=`rgba(0,0,20,${(1-light)*.7})`;ctx.fillRect(0,0,W,H);
   }
 
+  // Walk animation
+  const isWalking=Math.abs(PL.vx)>0.1&&PL.onGround;
+  if(isWalking)walkTime+=0.016;
+
   // Other players
   for(const[,pd]of others){
     const{x,y}=w2s(pd.x,pd.y);
     if(x<-80||x>W+80)continue;
-    drawCharacter(ctx,x,y,TILE,pd.dir,getSkin(pd.id),pd.name,pd.hp,20);
+    const isOtherWalking=Math.abs((pd.prevX||pd.x)-pd.x)>0.01;
+    drawCharacter(ctx,x,y,TILE,pd.dir,getSkin(pd.id),pd.name,pd.hp,20,isOtherWalking);
   }
 
   // Mobs
@@ -1167,7 +1309,7 @@ function render(){
 
   // Player
   const{x:px,y:py}=w2s(PL.x,PL.y);
-  drawCharacter(ctx,px,py,TILE,PL.dir,getSkin(myId),pName,PL.hp,20);
+  drawCharacter(ctx,px,py,TILE,PL.dir,getSkin(myId),pName,PL.hp,20,isWalking);
 
   // Cursor highlight — use consistent center
   const wp=s2w(mouseX,mouseY);
@@ -1238,10 +1380,11 @@ function buildInvGrid(){
 
 function refreshInvGrid(){
   const g=document.getElementById('inv-grid');if(!g)return;
-  g.querySelectorAll('.islot').forEach((s,i)=>{
+  g.querySelectorAll('.islot').forEach((s)=>{
+    const i=parseInt(s.dataset.idx);
     const cv=s.querySelector('canvas');const ic=s.querySelector('.ic');
+    cv.getContext('2d').clearRect(0,0,32,32);ic.textContent='';
     if(inv[i]){const c=getItemCanvas(inv[i].i,32);cv.getContext('2d').drawImage(c,0,0);ic.textContent=inv[i].n>1?inv[i].n:'';}
-    else{cv.getContext('2d').clearRect(0,0,32,32);ic.textContent='';}
   });
 }
 
@@ -1283,44 +1426,34 @@ function addSlotDragEvents(el,sourceType,sourceIdx){
 
 function dropOnSlot(destType,destIdx){
   if(!drag.active)return;
-  const srcType=drag.sourceType,srcIdx=drag.sourceIdx;
-  const itemId=drag.itemId;
+  const srcType=drag.sourceType;
+  const srcIdx=drag.sourceIdx;
 
   if(srcType===destType&&srcIdx===destIdx){endDrag();return;}
 
   if(srcType==='inv'&&destType==='inv'){
-    // Swap inventory slots
-    const tmp=inv[destIdx];
-    inv[destIdx]=inv[srcIdx];
-    inv[srcIdx]=tmp;
-    refreshAll();
+    // Proper swap: copy both values first to avoid overwrite
+    const a=inv[srcIdx]?{...inv[srcIdx]}:null;
+    const b=inv[destIdx]?{...inv[destIdx]}:null;
+    inv[srcIdx]=b;
+    inv[destIdx]=a;
   }
-  else if(srcType==='inv'&&destType==='craft'){
-    // Move from inventory to craft grid (take 1)
-    if(inv[srcIdx]){
-      craftGridItems[destIdx]=inv[srcIdx].i;
-      // Don't remove from inv yet — only consume on craft
+  else if((srcType==='inv'||srcType==='craft-inv')&&destType==='craft'){
+    const realSrcIdx=srcIdx; // index into inv[]
+    if(inv[realSrcIdx]){
+      craftGridItems[destIdx]=inv[realSrcIdx].i;
       refreshCraftGrid();checkCraftMatch();
     }
   }
-  else if(srcType==='craft'&&destType==='inv'){
-    // Return craft slot item (just clear the slot, item stays in inv)
+  else if(srcType==='craft'&&(destType==='inv'||destType==='craft-inv')){
     craftGridItems[srcIdx]=null;
     refreshCraftGrid();checkCraftMatch();
   }
   else if(srcType==='craft'&&destType==='craft'){
-    // Swap craft slots
     const tmp=craftGridItems[destIdx];
     craftGridItems[destIdx]=craftGridItems[srcIdx];
     craftGridItems[srcIdx]=tmp;
     refreshCraftGrid();checkCraftMatch();
-  }
-  else if(srcType==='craft-inv'&&destType==='craft'){
-    // From the craft panel's inventory view to craft grid
-    if(inv[srcIdx]){
-      craftGridItems[destIdx]=inv[srcIdx].i;
-      refreshCraftGrid();checkCraftMatch();
-    }
   }
 
   endDrag();
@@ -1378,10 +1511,11 @@ function buildCraftInvGrid(){
 
 function refreshCraftInvGrid(){
   const g=document.getElementById('craft-inv-grid');if(!g)return;
-  g.querySelectorAll('.islot').forEach((s,i)=>{
+  g.querySelectorAll('.islot').forEach((s)=>{
+    const i=parseInt(s.dataset.idx);
     const cv=s.querySelector('canvas');const ic=s.querySelector('.ic');
+    cv.getContext('2d').clearRect(0,0,32,32);ic.textContent='';
     if(inv[i]){const c=getItemCanvas(inv[i].i,32);cv.getContext('2d').drawImage(c,0,0);ic.textContent=inv[i].n>1?inv[i].n:'';}
-    else{cv.getContext('2d').clearRect(0,0,32,32);ic.textContent='';}
   });
 }
 
@@ -1599,7 +1733,21 @@ document.addEventListener('wheel',e=>{
 
 canvas.addEventListener('mousedown',e=>{
   if(!inGame)return;
-  if(e.button===0)mDown=true;
+  if(e.button===0){
+    mDown=true;
+    // Attack mob on left click
+    if(!panelOpen()){
+      const centerX=PL.x+PL.w/2,centerY=PL.y+PL.h/2;
+      for(const[,m]of mobs){
+        const dist2=Math.hypot((m.x+0.5)-centerX,(m.y+0.9)-centerY);
+        if(dist2<3.5){
+          const dmg=TDMG[inv[activeSlot]?.i]||2;
+          send({type:'attack_mob',mobId:m.id,damage:dmg});
+          break;
+        }
+      }
+    }
+  }
   if(e.button===2){
     e.preventDefault();
     if(panelOpen())return;
@@ -1612,7 +1760,6 @@ canvas.addEventListener('mousedown',e=>{
       if(cur===B.AIR||cur===B.WATER){
         const slot=inv[activeSlot];
         if(slot&&slot.i>0&&slot.i<=35){
-          // Don't place inside player hitbox
           const inPlayerX=(bx>=Math.floor(PL.x)&&bx<=Math.floor(PL.x+PL.w));
           const inPlayerY=(by>=Math.floor(PL.y)&&by<=Math.floor(PL.y+PL.h));
           if(!(inPlayerX&&inPlayerY)){
@@ -1623,11 +1770,6 @@ canvas.addEventListener('mousedown',e=>{
           }
         }
       }
-    }
-    // Attack mob — check distance serverside too
-    for(const[,m]of mobs){
-      const dist2=Math.hypot(m.x-centerX,m.y-(PL.y+PL.h/2));
-      if(dist2<3.5){const dmg=TDMG[inv[activeSlot]?.i]||2;send({type:'attack_mob',mobId:m.id,damage:dmg});break;}
     }
   }
 });
