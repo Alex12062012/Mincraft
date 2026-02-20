@@ -1,13 +1,15 @@
 const WebSocket = require('ws');
 const http = require('http');
 const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
 
 const PORT = process.env.PORT || 3000;
 
-// ─── Perlin Noise ────────────────────────────────────────────────────────────
+// ─── Perlin Noise ─────────────────────────────────────────────────────────────
 function mulberry32(seed) {
   let s = seed >>> 0;
-  return function() {
+  return function () {
     s += 0x6D2B79F5;
     let t = s;
     t = Math.imul(t ^ (t >>> 15), t | 1);
@@ -18,7 +20,7 @@ function mulberry32(seed) {
 
 function createNoise(seed) {
   const rand = mulberry32(seed);
-  const p = Array.from({length: 256}, (_, i) => i);
+  const p = Array.from({ length: 256 }, (_, i) => i);
   for (let i = 255; i > 0; i--) {
     const j = Math.floor(rand() * (i + 1));
     [p[i], p[j]] = [p[j], p[i]];
@@ -37,10 +39,10 @@ function createNoise(seed) {
     const X = Math.floor(x) & 255, Y = Math.floor(y) & 255;
     x -= Math.floor(x); y -= Math.floor(y);
     const u = fade(x), v = fade(y);
-    const a = perm[X] + Y, b = perm[X+1] + Y;
+    const a = perm[X] + Y, b = perm[X + 1] + Y;
     return lerp(
-      lerp(grad(perm[a], x, y), grad(perm[b], x-1, y), u),
-      lerp(grad(perm[a+1], x, y-1), grad(perm[b+1], x-1, y-1), u), v
+      lerp(grad(perm[a], x, y), grad(perm[b], x - 1, y), u),
+      lerp(grad(perm[a + 1], x, y - 1), grad(perm[b + 1], x - 1, y - 1), u), v
     );
   }
   function octave(x, y, octs, persistence, scale) {
@@ -54,7 +56,7 @@ function createNoise(seed) {
   return { noise, octave };
 }
 
-// ─── Block Types ─────────────────────────────────────────────────────────────
+// ─── Block Types ──────────────────────────────────────────────────────────────
 const B = {
   AIR: 0, GRASS: 1, DIRT: 2, STONE: 3, SAND: 4, GRAVEL: 5,
   WOOD: 6, LEAVES: 7, WATER: 8, LAVA: 9, COAL_ORE: 10,
@@ -66,86 +68,83 @@ const B = {
   MOSSY_COBBLE: 33, BOOKSHELF: 34, WOOL: 35,
 };
 
+const VALID_BLOCK_IDS = new Set(Object.values(B).filter(v => v !== B.AIR && v !== B.BEDROCK));
+
 const CHUNK_SIZE = 16;
 const WORLD_HEIGHT = 128;
 const SEA_LEVEL = 64;
 
 function isPassable(b) {
-  return b === B.AIR || b === B.WATER || b === B.LAVA || b === B.TORCH || b === B.LADDER;
+  return b === B.AIR || b === B.WATER || b === B.LAVA || b === B.TORCH || b === B.LADDER || b === B.LEAVES;
 }
 
-// ─── Chunk Generation ────────────────────────────────────────────────────────
+// ─── Chunk Generation ─────────────────────────────────────────────────────────
 function generateChunk(cx, seed) {
   const { octave } = createNoise(seed);
   const blocks = {};
 
+  // Pre-compute surface heights for neighbor awareness (trees crossing chunks)
+  const surfaceMap = {};
+  for (let lx = -2; lx < CHUNK_SIZE + 2; lx++) {
+    const wx = cx * CHUNK_SIZE + lx;
+    const heightN = octave(wx, 0, 4, 0.5, 60);
+    surfaceMap[lx] = Math.floor(SEA_LEVEL + heightN * 18);
+  }
+
   for (let lx = 0; lx < CHUNK_SIZE; lx++) {
     const wx = cx * CHUNK_SIZE + lx;
-
-    // Surface height: Y increases downward. Surface around Y=55-75.
-    // heightN in [-1,1], surface = SEA_LEVEL + noise*20
-    const heightN = octave(wx, 0, 4, 0.5, 60);
-    const surfaceY = Math.floor(SEA_LEVEL + heightN * 18);
-    // surfaceY = the grass/sand block row
+    const surfaceY = surfaceMap[lx];
 
     const biomeN = octave(wx * 0.25, 100, 2, 0.5, 80);
     const isDesert = biomeN > 0.35;
-    const isSnowy  = biomeN < -0.4;
+    const isSnowy = biomeN < -0.4;
 
     for (let y = 0; y < WORLD_HEIGHT; y++) {
       const key = `${lx},${y}`;
       let block = B.AIR;
 
-      // Bedrock: bottom 2 rows
       if (y >= WORLD_HEIGHT - 2) {
         block = B.BEDROCK;
-      }
-      // Underground (below surface)
-      else if (y > surfaceY) {
+      } else if (y > surfaceY) {
         const caveV = octave(wx * 0.09, y * 0.09, 3, 0.5, 1);
         if (caveV > 0.26) {
-          // cave = air
           block = B.AIR;
         } else {
-          // depth from bottom for ore distribution
           const fromBottom = WORLD_HEIGHT - y;
           const oreN = Math.abs(octave(wx * 3.1 + 17, y * 3.1 + 17, 2, 0.5, 4));
-          if      (fromBottom <= 16 && oreN > 0.30) block = B.DIAMOND_ORE;
+          if (fromBottom <= 16 && oreN > 0.30) block = B.DIAMOND_ORE;
           else if (fromBottom <= 32 && oreN > 0.28) block = B.GOLD_ORE;
-          else if (oreN > 0.18) block = B.IRON_ORE;   // iron very common
-          else if (oreN > 0.10) block = B.COAL_ORE;   // coal super common
+          else if (oreN > 0.18) block = B.IRON_ORE;
+          else if (oreN > 0.10) block = B.COAL_ORE;
           else block = B.STONE;
         }
-      }
-      // Surface row
-      else if (y === surfaceY) {
+      } else if (y === surfaceY) {
         block = isDesert ? B.SAND : isSnowy ? B.SNOW : B.GRASS;
-      }
-      // Shallow underground (dirt layer, 3 rows)
-      else if (y > surfaceY - 4) {
+      } else if (y > surfaceY - 4) {
         block = isDesert ? B.SAND : B.DIRT;
-      }
-      // Water: fill air gaps between surface and sea level
-      else if (surfaceY > SEA_LEVEL && y > SEA_LEVEL && y < surfaceY) {
+      } else if (surfaceY > SEA_LEVEL && y > SEA_LEVEL && y < surfaceY) {
         block = B.WATER;
       }
-      // else: sky / air above surface = AIR (default)
 
       if (block !== B.AIR) blocks[key] = block;
     }
 
-    // Trees: grow upward (Y decreasing) from surface
-    if (!isDesert && !isSnowy && surfaceY <= SEA_LEVEL) {
+    // Trees — only within this chunk (no cross-chunk leaf placement)
+    if (!isDesert && !isSnowy && surfaceY < SEA_LEVEL) {
       const treeN = octave(wx * 5.7 + 300, 0, 1, 0.5, 4);
       if (treeN > 0.35) {
-        const base = surfaceY - 1; // trunk starts just above grass
-        // Trunk (5 blocks up = Y decreasing)
-        for (let h = 0; h < 5; h++) blocks[`${lx},${base - h}`] = B.WOOD;
-        // Leaves crown
+        const base = surfaceY - 1;
+        for (let h = 0; h < 5; h++) {
+          const tk = `${lx},${base - h}`;
+          blocks[tk] = B.WOOD;
+        }
+        // Leaves — only place within this chunk's lx range
         for (let dy = 0; dy <= 3; dy++) {
           for (let dx = -2; dx <= 2; dx++) {
+            const tlx = lx + dx;
+            if (tlx < 0 || tlx >= CHUNK_SIZE) continue; // skip cross-chunk
             if (Math.abs(dx) + dy <= 3) {
-              const k = `${lx + dx},${base - 4 - dy}`;
+              const k = `${tlx},${base - 4 - dy}`;
               if (!blocks[k]) blocks[k] = B.LEAVES;
             }
           }
@@ -153,13 +152,13 @@ function generateChunk(cx, seed) {
       }
     }
 
-    // Cactus in desert
-    if (isDesert && surfaceY <= SEA_LEVEL) {
+    // Cactus
+    if (isDesert && surfaceY < SEA_LEVEL) {
       const cacN = octave(wx * 8 + 500, 0, 1, 0.5, 3);
       if (cacN > 0.42) {
         for (let h = 1; h <= 3; h++) {
-          if (!blocks[`${lx},${surfaceY - h}`])
-            blocks[`${lx},${surfaceY - h}`] = B.CACTUS;
+          const k = `${lx},${surfaceY - h}`;
+          if (!blocks[k]) blocks[k] = B.CACTUS;
         }
       }
     }
@@ -210,10 +209,9 @@ function setBlock(room, wx, wy, blockId) {
 }
 
 function findSurface(room, wx) {
-  // Scan from top (y=0) downward, find first solid block, return y-1 (air above it)
   for (let y = 5; y < WORLD_HEIGHT - 5; y++) {
     if (!isPassable(getBlock(room, wx, y)) && isPassable(getBlock(room, wx, y - 1))) {
-      return y - 1;
+      return y - 2; // place player 2 above surface to avoid clipping
     }
   }
   return SEA_LEVEL - 5;
@@ -222,14 +220,17 @@ function findSurface(room, wx) {
 // ─── Mob AI ───────────────────────────────────────────────────────────────────
 function spawnMob(room, x, y, type) {
   const id = ++mobIdCounter;
-  room.mobs.set(id, { id, type, x, y, vx: 0, vy: 0, hp: type === 'zombie' ? 20 : 16, dir: 1, atkCD: 0, jumpCD: 0 });
+  room.mobs.set(id, {
+    id, type, x, y, vx: 0, vy: 0,
+    hp: type === 'zombie' ? 20 : 16,
+    dir: 1, atkCD: 0, jumpCD: 0
+  });
 }
 
 function tickRoom(room) {
   room.dayTime = (room.dayTime + 1) % 24000;
-  const isNight = room.dayTime > 13000;
+  const isNight = room.dayTime > 13000 && room.dayTime < 22000;
 
-  // Spawn
   if (isNight && room.players.size > 0 && room.mobs.size < 15) {
     for (const [, p] of room.players) {
       if (Math.random() < 0.003) {
@@ -239,16 +240,18 @@ function tickRoom(room) {
       }
     }
   }
-  // Despawn day
+
   if (!isNight && room.mobs.size > 0 && Math.random() < 0.01) {
     const ids = [...room.mobs.keys()];
     if (ids.length) room.mobs.delete(ids[0]);
   }
 
-  // Update mobs
   for (const [id, mob] of room.mobs) {
     updateMob(room, mob);
-    if (mob.hp <= 0) room.mobs.delete(id);
+    if (mob.hp <= 0) {
+      room.mobs.delete(id);
+      broadcast(room, JSON.stringify({ type: 'mob_die', id }));
+    }
   }
 
   if (room.players.size === 0) return;
@@ -299,25 +302,25 @@ function updateMob(room, mob) {
   }
 
   // X collision
-  const nx = mob.x + mob.vx;
-  if (isPassable(getBlock(room, Math.floor(nx), Math.floor(mob.y)))) mob.x = nx;
+  const nx = mob.x + mob.vx * 0.05;
+  if (isPassable(getBlock(room, Math.floor(nx + (mob.dir > 0 ? 0.9 : 0)), Math.floor(mob.y)))) mob.x = nx;
   else mob.dir *= -1;
 
-  // Y collision
-  const ny = mob.y + mob.vy;
-  if (isPassable(getBlock(room, Math.floor(mob.x), Math.floor(ny)))) {
-    mob.y = ny;
-  } else {
-    if (mob.vy > 0) mob.y = Math.floor(mob.y);
+  // Y collision (simple)
+  const ny = mob.y + mob.vy * 0.05;
+  const bBelow = getBlock(room, Math.floor(mob.x + 0.5), Math.floor(ny + 1.8));
+  if (mob.vy > 0 && !isPassable(bBelow)) {
+    mob.y = Math.floor(mob.y + 1) - 1.8;
     mob.vy = 0;
+  } else if (mob.vy < 0 && !isPassable(getBlock(room, Math.floor(mob.x + 0.5), Math.floor(ny)))) {
+    mob.vy = 0;
+  } else {
+    mob.y = ny;
   }
-  mob.y = Math.max(0, Math.min(WORLD_HEIGHT - 1, mob.y));
+  mob.y = Math.max(0, Math.min(WORLD_HEIGHT - 2, mob.y));
 }
 
-// ─── WebSocket ────────────────────────────────────────────────────────────────
-const fs = require('fs');
-const path = require('path');
-
+// ─── HTTP + WebSocket ─────────────────────────────────────────────────────────
 const server = http.createServer((req, res) => {
   if (req.url === '/' || req.url === '/index.html') {
     try {
@@ -326,7 +329,7 @@ const server = http.createServer((req, res) => {
       res.end(html);
     } catch (e) {
       res.writeHead(500);
-      res.end('index.html introuvable sur le serveur');
+      res.end('index.html introuvable');
     }
   } else {
     res.writeHead(404);
@@ -337,7 +340,14 @@ const server = http.createServer((req, res) => {
 const wss = new WebSocket.Server({ server });
 
 function genCode() {
-  return Math.random().toString(36).substring(2, 8).toUpperCase();
+  let code;
+  let attempts = 0;
+  do {
+    code = Math.random().toString(36).substring(2, 8).toUpperCase();
+    attempts++;
+    if (attempts > 100) break;
+  } while (rooms.has(code));
+  return code;
 }
 
 function broadcast(room, data, excludeId = null) {
@@ -346,86 +356,165 @@ function broadcast(room, data, excludeId = null) {
   }
 }
 
+// Rate limiting per player
+const RATE_LIMIT_MS = 100; // min ms between chat messages
+
 wss.on('connection', ws => {
   let player = null, room = null;
+  let lastChatTime = 0;
+
+  // Heartbeat / timeout detection
+  ws.isAlive = true;
+  ws.on('pong', () => { ws.isAlive = true; });
 
   ws.on('message', raw => {
-    let msg; try { msg = JSON.parse(raw); } catch { return; }
+    if (raw.length > 4096) return; // reject oversized messages
+    let msg;
+    try { msg = JSON.parse(raw); } catch { return; }
 
     switch (msg.type) {
       case 'create_room': {
+        if (player) return; // already in a room
         const code = genCode();
         room = createRoom(code);
         const pid = crypto.randomUUID();
         const sy = findSurface(room, 0);
-        player = { id: pid, name: (msg.name||'Player').substring(0,16), ws, x: 0, y: sy, dir: 1, hp: 20, bedX: null, bedY: null };
+        player = {
+          id: pid,
+          name: sanitizeName(msg.name),
+          ws, x: 0, y: sy, dir: 1, hp: 20,
+          bedX: null, bedY: null,
+          lastMoveTime: 0,
+        };
         room.players.set(pid, player);
         ws.send(JSON.stringify({ type: 'joined', roomCode: code, playerId: pid, seed: room.seed, x: 0, y: sy }));
         break;
       }
+
       case 'join_room': {
-        const code = (msg.code||'').toUpperCase();
+        if (player) return;
+        const code = (msg.code || '').toUpperCase().substring(0, 8);
         room = rooms.get(code);
         if (!room) { ws.send(JSON.stringify({ type: 'error', msg: 'Salon introuvable' })); return; }
         const pid = crypto.randomUUID();
         const sy = findSurface(room, 0);
-        player = { id: pid, name: (msg.name||'Player').substring(0,16), ws, x: 0, y: sy, dir: 1, hp: 20, bedX: null, bedY: null };
+        player = {
+          id: pid,
+          name: sanitizeName(msg.name),
+          ws, x: 0, y: sy, dir: 1, hp: 20,
+          bedX: null, bedY: null,
+          lastMoveTime: 0,
+        };
         room.players.set(pid, player);
         broadcast(room, JSON.stringify({ type: 'player_join', id: pid, name: player.name }), pid);
         ws.send(JSON.stringify({ type: 'joined', roomCode: code, playerId: pid, seed: room.seed, x: 0, y: sy }));
         ws.send(JSON.stringify({ type: 'chat_history', messages: room.chat }));
         break;
       }
+
       case 'move': {
         if (!player) return;
-        player.x = msg.x; player.y = msg.y; player.dir = msg.dir || 1;
+        const now = Date.now();
+        // Basic sanity: don't allow teleporting more than 20 blocks per tick
+        const dx = Math.abs((msg.x || 0) - player.x);
+        const dy = Math.abs((msg.y || 0) - player.y);
+        const dt = now - player.lastMoveTime;
+        const maxDist = dt * 0.02; // 20 blocks/sec max
+        if (dx > maxDist + 2 || dy > maxDist + 5) break; // reject teleport
+        if (!isFinite(msg.x) || !isFinite(msg.y)) break;
+        player.x = msg.x;
+        player.y = Math.max(0, Math.min(WORLD_HEIGHT - 2, msg.y));
+        player.dir = msg.dir === -1 ? -1 : 1;
+        player.lastMoveTime = now;
         break;
       }
+
       case 'request_chunk': {
         if (!room) return;
-        const chunk = getOrGenChunk(room, msg.cx);
-        ws.send(JSON.stringify({ type: 'chunk', cx: msg.cx, blocks: { ...chunk.blocks, ...chunk.modified } }));
+        const cx = parseInt(msg.cx);
+        if (!isFinite(cx) || Math.abs(cx) > 10000) return;
+        const chunk = getOrGenChunk(room, cx);
+        ws.send(JSON.stringify({ type: 'chunk', cx, blocks: { ...chunk.blocks, ...chunk.modified } }));
         break;
       }
+
       case 'break_block': {
-        if (!room) return;
-        setBlock(room, msg.x, msg.y, B.AIR);
-        broadcast(room, JSON.stringify({ type: 'block_change', x: msg.x, y: msg.y, block: B.AIR }));
+        if (!room || !player) return;
+        const bx = Math.round(msg.x), by = Math.round(msg.y);
+        if (!isFinite(bx) || !isFinite(by)) return;
+        // Must be within reach
+        const dist = Math.hypot(bx + 0.5 - (player.x + 0.4), by + 0.5 - (player.y + 0.925));
+        if (dist > 8) return;
+        // Can't break bedrock
+        if (getBlock(room, bx, by) === B.BEDROCK) return;
+        setBlock(room, bx, by, B.AIR);
+        broadcast(room, JSON.stringify({ type: 'block_change', x: bx, y: by, block: B.AIR }));
         break;
       }
+
       case 'place_block': {
-        if (!room) return;
-        setBlock(room, msg.x, msg.y, msg.block);
-        if (msg.block === B.BED && player) { player.bedX = msg.x; player.bedY = msg.y; }
-        broadcast(room, JSON.stringify({ type: 'block_change', x: msg.x, y: msg.y, block: msg.block }));
+        if (!room || !player) return;
+        const bx = Math.round(msg.x), by = Math.round(msg.y);
+        const blockId = parseInt(msg.block);
+        if (!isFinite(bx) || !isFinite(by)) return;
+        if (!VALID_BLOCK_IDS.has(blockId)) return; // reject invalid blocks
+        const dist = Math.hypot(bx + 0.5 - (player.x + 0.4), by + 0.5 - (player.y + 0.925));
+        if (dist > 8) return;
+        setBlock(room, bx, by, blockId);
+        if (blockId === B.BED && player) { player.bedX = bx; player.bedY = by; }
+        broadcast(room, JSON.stringify({ type: 'block_change', x: bx, y: by, block: blockId }));
         break;
       }
+
       case 'chat': {
         if (!room || !player) return;
-        const cm = { name: player.name, text: (msg.text||'').substring(0, 200), ts: Date.now() };
+        const now = Date.now();
+        if (now - lastChatTime < RATE_LIMIT_MS) return; // rate limit
+        lastChatTime = now;
+        const text = (msg.text || '').substring(0, 200).trim();
+        if (!text) return;
+        const cm = { name: player.name, text, ts: now };
         room.chat.push(cm);
         if (room.chat.length > 100) room.chat.shift();
         broadcast(room, JSON.stringify({ type: 'chat', ...cm }));
         break;
       }
+
       case 'respawn': {
         if (!player || !room) return;
         player.hp = 20;
         if (player.bedX !== null) {
-          player.x = player.bedX; player.y = player.bedY - 1;
+          // Find safe spot near bed
+          const bx = player.bedX;
+          let by = player.bedY - 1;
+          // Make sure spawn spot is clear
+          for (let attempt = 0; attempt < 5; attempt++) {
+            if (isPassable(getBlock(room, bx, by)) && isPassable(getBlock(room, bx, by - 1))) break;
+            by--;
+          }
+          player.x = bx;
+          player.y = by - 1;
         } else {
-          player.x = msg.spawnX || 0;
-          player.y = findSurface(room, msg.spawnX || 0);
+          const sx = Math.max(-500, Math.min(500, parseInt(msg.spawnX) || 0));
+          player.x = sx;
+          player.y = findSurface(room, sx);
         }
         ws.send(JSON.stringify({ type: 'respawned', x: player.x, y: player.y, hp: 20 }));
         break;
       }
+
       case 'attack_mob': {
-        if (!room) return;
+        if (!room || !player) return;
         const mob = room.mobs.get(msg.mobId);
-        if (mob) {
-          mob.hp -= (msg.damage || 5);
-          if (mob.hp <= 0) { room.mobs.delete(msg.mobId); broadcast(room, JSON.stringify({ type: 'mob_die', id: msg.mobId })); }
+        if (!mob) return;
+        // Verify distance
+        const dist = Math.hypot(mob.x - player.x, mob.y - player.y);
+        if (dist > 5) return;
+        const dmg = Math.max(1, Math.min(20, parseInt(msg.damage) || 2));
+        mob.hp -= dmg;
+        if (mob.hp <= 0) {
+          room.mobs.delete(msg.mobId);
+          broadcast(room, JSON.stringify({ type: 'mob_die', id: msg.mobId }));
         }
         break;
       }
@@ -443,7 +532,25 @@ wss.on('connection', ws => {
     }
   });
 
-  ws.on('error', () => {});
+  ws.on('error', () => { });
 });
+
+// Heartbeat to detect dead connections
+const heartbeat = setInterval(() => {
+  wss.clients.forEach(ws => {
+    if (!ws.isAlive) { ws.terminate(); return; }
+    ws.isAlive = false;
+    ws.ping();
+  });
+}, 30000);
+
+wss.on('close', () => clearInterval(heartbeat));
+
+function sanitizeName(name) {
+  return (name || 'Player')
+    .replace(/[<>&"]/g, '')
+    .substring(0, 16)
+    .trim() || 'Player';
+}
 
 server.listen(PORT, () => console.log(`🎮 Minecraft 2D on port ${PORT}`));
