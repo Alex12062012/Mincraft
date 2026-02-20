@@ -701,189 +701,169 @@ function drawToolIcon(ctx,id,s){
 }
 
 // ══════════════════════════════════════════════════════════════
-//  CHARACTER & MOB RENDERING — Steve papercraft style
+//  CHARACTER & MOB RENDERING
 // ══════════════════════════════════════════════════════════════
+let walkTime = 0;
 
-// Walk animation timer (global, increments in render)
-let walkTime=0;
-
-// Steve-like skins: each color is a flat face color like Minecraft papercraft
-const SKINS=[
-  // Classic Steve
-  { face:'#c8a46e', hair:'#4a2e0a', shirt:'#3b5fa0', shirtD:'#2a4a80',
-    pants:'#3a5090', pantsD:'#2a3a70', shoes:'#3a1a0a', name:'#7ab0ff' },
-  // Alex (green shirt)
-  { face:'#e0b87a', hair:'#b05020', shirt:'#5a9a3a', shirtD:'#3a7020',
-    pants:'#3a6028', pantsD:'#2a4818', shoes:'#3a1a0a', name:'#aaffaa' },
-  // Diamond armor
-  { face:'#c8a46e', hair:'#202020', shirt:'#30c8c8', shirtD:'#208888',
-    pants:'#28a8a8', pantsD:'#186868', shoes:'#108888', name:'#80ffff' },
-  // Gold
-  { face:'#e0c070', hair:'#604010', shirt:'#c89020', shirtD:'#906000',
-    pants:'#a07010', pantsD:'#704800', shoes:'#502808', name:'#ffd700' },
-  // Dark/shadow
-  { face:'#b8906a', hair:'#0a0a0a', shirt:'#1a1a1a', shirtD:'#0a0a0a',
-    pants:'#111', pantsD:'#080808', shoes:'#050505', name:'#aaaaaa' },
+const SKINS = [
+  { face:'#c8a46e', hair:'#4a2e0a', shirt:'#3b5fa0', shirtD:'#2a4a80', pants:'#3a5090', pantsD:'#2a3a70', shoes:'#3a1a0a', name:'#7ab0ff' },
+  { face:'#e0b87a', hair:'#b05020', shirt:'#5a9a3a', shirtD:'#3a7020', pants:'#3a6028', pantsD:'#2a4818', shoes:'#3a1a0a', name:'#aaffaa' },
+  { face:'#c8a46e', hair:'#202020', shirt:'#30c8c8', shirtD:'#208888', pants:'#28a8a8', pantsD:'#186868', shoes:'#108888', name:'#80ffff' },
+  { face:'#e0c070', hair:'#604010', shirt:'#c89020', shirtD:'#906000', pants:'#a07010', pantsD:'#704800', shoes:'#502808', name:'#ffd700' },
+  { face:'#b8906a', hair:'#0a0a0a', shirt:'#1a1a1a', shirtD:'#0a0a0a', pants:'#111',   pantsD:'#080808', shoes:'#050505', name:'#aaaaaa' },
 ];
-function getSkin(pid){let h=0;for(const c of(pid||''))h=(h*31+c.charCodeAt(0))&0xffff;return SKINS[h%SKINS.length];}
+function getSkin(pid){ let h=0; for(const c of(pid||'')) h=(h*31+c.charCodeAt(0))&0xffff; return SKINS[h%SKINS.length]; }
 
-// Draw a flat-shaded rectangle (light top/left, dark right/bottom = papercraft cube face)
+/*
+  Steve en vue de côté — proportions Minecraft exactes (1 "px MC" = 1 unité) :
+    Tête  : 8 × 8  unités
+    Corps : 8 × 12 unités
+    Jambe : 4 × 12 unités  (×2)
+    Bras  : 4 × 12 unités  (×2, collés sur les côtés du corps)
+  Total hauteur : 32 unités → on veut PL.h blocs = 1.8 × TILE pixels
+  Donc : 1 unité = (1.8 × TILE) / 32 pixels
+
+  Largeur totale visible : bras(4) + corps(8) + bras(4) = 16 unités = 0.9 bloc côté à côté
+  On centre le personnage sur le centre horizontal de la hitbox.
+
+  Le personnage est dessiné depuis sy (haut de la hitbox) vers le bas.
+  sx = écran X du coin haut-gauche de la hitbox (PL.x en monde → écran).
+  Le centre X est : sx + PL.w/2 * TILE
+*/
 function drawCharacter(ctx, sx, sy, tile, dir, skin, name, hp=20, maxHp=20, isWalking=false){
-  // Scale: character is exactly 2 tiles tall (like Minecraft: 2 blocks)
-  // Total height = 2*tile. We draw from sy (top of feet) upward.
-  // Breakdown (in tile units, origin = top of character):
-  //   Head:  0.0 → 0.5  (8px out of 16px per tile = half tile)
-  //   Body:  0.5 → 1.25
-  //   Legs:  1.25 → 2.0
-  // Width ~= 0.5 tile for body, 0.25 per limb
+  // 1 unité MC = combien de pixels ?
+  // Steve fait 32 unités de haut = 2 blocs dans Minecraft
+  // On le scale à 1.8 blocs (hitbox) mais avec le modèle visible un peu plus grand
+  const U = (2.0 * tile) / 32;   // 2 blocs de haut = bien visible
 
-  const T=tile; // 1 tile = 32px
-  const sc=T/32;
+  // Centre X écran (centré sur la hitbox 0.8 bloc)
+  const CX = Math.round(sx + PL.w * tile / 2);
+  const TY = Math.round(sy);   // haut du personnage
 
-  // Walk swing: arms and legs swing when moving
-  const swing = isWalking ? Math.sin(walkTime*8)*0.18 : 0; // radians
+  // Animation marche
+  const sw2 = isWalking ? Math.sin(walkTime * 7) * 0.38 : 0;
 
-  // Helper: filled rect relative to (sx, sy) in pixel coords
-  const r=(x,y,w,h,col)=>{
-    ctx.fillStyle=col;
-    ctx.fillRect(Math.round(sx+x),Math.round(sy+y),Math.ceil(w),Math.ceil(h));
-  };
-  // Helper: dark-shaded rect (right/bottom faces of cube)
-  const rd=(x,y,w,h,col,dark)=>{
-    r(x,y,w,h,col);
-    // right shade
-    ctx.fillStyle=dark;
-    ctx.fillRect(Math.round(sx+x+w-Math.ceil(sc*1.5)),Math.round(sy+y),Math.ceil(sc*1.5),Math.ceil(h));
-    // bottom shade
-    ctx.fillRect(Math.round(sx+x),Math.round(sy+y+h-Math.ceil(sc*1.5)),Math.ceil(w),Math.ceil(sc*1.5));
+  // ── raccourcis ──
+  // px en pixels depuis CX (unités MC, centré sur body)
+  const X = (u) => Math.round(CX + u * U);
+  // py en pixels depuis TY
+  const Y = (u) => Math.round(TY + u * U);
+  // taille en pixels
+  const P = (u) => Math.max(1, Math.round(u * U));
+
+  // Rect plein (coords en unités MC)
+  const fr = (ux, uy, uw, uh, c) => {
+    ctx.fillStyle = c;
+    ctx.fillRect(X(ux), Y(uy), P(uw), P(uh));
   };
 
-  // Pixel sizes (all in px)
-  const HW=8*sc,HH=8*sc;      // head width/height
-  const BW=8*sc,BH=12*sc;     // body width/height
-  const LW=4*sc,LH=12*sc;     // leg width/height
-  const AW=4*sc,AH=12*sc;     // arm width/height
+  // Rect avec ombre droite + bas (effet volume cube)
+  const vr = (ux, uy, uw, uh, c, d) => {
+    fr(ux, uy, uw, uh, c);
+    const s = Math.max(1, Math.round(1.5*U));
+    ctx.fillStyle = d;
+    ctx.fillRect(X(ux)+P(uw)-s, Y(uy), s, P(uh));   // droite
+    ctx.fillRect(X(ux), Y(uy)+P(uh)-s, P(uw), s);   // bas
+  };
 
-  // Base positions (sx,sy is top-left of the 1-tile-wide, 2-tile-tall bounding box)
-  // Center the character horizontally in the tile
-  const cx=T/2; // center x offset from sx
+  // Membre rotatif. pivX/pivY en unités MC (point de pivot = épaule/hanche)
+  // drawFn dessine avec ctx.translate déjà fait au pivot
+  const limb = (pivUX, pivUY, angle, drawFn) => {
+    ctx.save();
+    ctx.translate(X(pivUX), Y(pivUY));
+    ctx.rotate(angle);
+    drawFn();
+    ctx.restore();
+  };
 
-  // Y positions (from sy = world top of character)
-  const headY=0;
-  const bodyY=HH;
-  const legY=HH+BH;
-
-  // Head X (centered)
-  const headX=cx-HW/2;
-
-  // Body X (centered, body = 8px wide)
-  const bodyX=cx-BW/2;
-
-  // Shadow
-  ctx.fillStyle='rgba(0,0,0,0.2)';
+  // ── ombre au sol ──
+  ctx.fillStyle = 'rgba(0,0,0,0.2)';
   ctx.beginPath();
-  ctx.ellipse(Math.round(sx+cx), Math.round(sy+HH+BH+LH+1*sc), 7*sc, 2*sc, 0, 0, Math.PI*2);
+  ctx.ellipse(CX, Y(32), P(6), P(2), 0, 0, Math.PI*2);
   ctx.fill();
 
-  // ── LEGS (drawn before body so body overlaps) ──
-  // Leg swing: front leg forward, back leg backward
-  const legSwing=swing;
-  const legOffY=Math.abs(Math.sin(walkTime*8))*1.5*sc; // slight vertical bob
+  // ── bras arrière ── (derrière tout)
+  // Le bras gauche est derrière quand on regarde à droite
+  limb(dir>0 ? -4 : 4, 8, dir>0 ? sw2 : -sw2, () => {
+    ctx.fillStyle = skin.shirtD;
+    ctx.fillRect(-P(2), 0, P(4), P(12));
+  });
 
-  // Left leg (back when facing right, front when facing left)
-  const leftLegSwing = dir>0 ? -legSwing : legSwing;
-  ctx.save();
-  ctx.translate(Math.round(sx+bodyX), Math.round(sy+legY));
-  ctx.rotate(leftLegSwing);
-  ctx.translate(-Math.round(sx+bodyX), -Math.round(sy+legY));
-  rd(bodyX, legY, LW, LH, skin.pants, skin.pantsD);
-  // Shoe
-  r(bodyX, legY+LH-2*sc, LW, 2*sc, skin.shoes);
-  ctx.restore();
+  // ── jambe arrière ──
+  limb(dir>0 ? -2 : 2, 20, dir>0 ? sw2 : -sw2, () => {
+    ctx.fillStyle = skin.pantsD;
+    ctx.fillRect(-P(2), 0, P(4), P(10));
+    ctx.fillStyle = skin.shoes;
+    ctx.fillRect(-P(2), P(10), P(4), P(2));
+  });
 
-  // Right leg (front when facing right)
-  const rightLegSwing = dir>0 ? legSwing : -legSwing;
-  ctx.save();
-  ctx.translate(Math.round(sx+bodyX+LW+1*sc), Math.round(sy+legY));
-  ctx.rotate(rightLegSwing);
-  ctx.translate(-Math.round(sx+bodyX+LW+1*sc), -Math.round(sy+legY));
-  rd(bodyX+LW, legY, LW, LH, skin.pants, skin.pantsD);
-  r(bodyX+LW, legY+LH-2*sc, LW, 2*sc, skin.shoes);
-  ctx.restore();
+  // ── corps ──
+  vr(-4, 8, 8, 12, skin.shirt, skin.shirtD);
+  // ceinture
+  fr(-4, 18, 8, 2, '#1e1e1e');
 
-  // ── BACK ARM ──
-  const armY=bodyY;
-  const backArmSwing = dir>0 ? legSwing : -legSwing; // opposite to front
-  const backArmX = dir>0 ? bodyX-AW : bodyX+BW;
-  ctx.save();
-  ctx.translate(Math.round(sx+backArmX+AW/2), Math.round(sy+armY));
-  ctx.rotate(backArmSwing);
-  ctx.translate(-Math.round(sx+backArmX+AW/2), -Math.round(sy+armY));
-  // Back arm slightly darker
-  r(backArmX, armY, AW, AH, skin.shirtD);
-  ctx.restore();
+  // ── jambe avant ──
+  limb(dir>0 ? 2 : -2, 20, dir>0 ? -sw2 : sw2, () => {
+    ctx.fillStyle = skin.pants;
+    ctx.fillRect(-P(2), 0, P(4), P(10));
+    // ombre droite
+    ctx.fillStyle = skin.pantsD;
+    ctx.fillRect(-P(2)+P(3), 0, Math.max(1,Math.round(1.3*U)), P(10));
+    ctx.fillStyle = skin.shoes;
+    ctx.fillRect(-P(2), P(10), P(4), P(2));
+  });
 
-  // ── BODY ──
-  rd(bodyX, bodyY, BW, BH, skin.shirt, skin.shirtD);
-  // Belt line
-  r(bodyX, bodyY+BH-2*sc, BW, 2*sc, '#333');
+  // ── bras avant ──
+  limb(dir>0 ? 4 : -4, 8, dir>0 ? -sw2 : sw2, () => {
+    ctx.fillStyle = skin.shirt;
+    ctx.fillRect(-P(2), 0, P(4), P(12));
+    ctx.fillStyle = skin.shirtD;
+    ctx.fillRect(-P(2)+P(3), 0, Math.max(1,Math.round(1.3*U)), P(12));
+  });
 
-  // ── FRONT ARM ──
-  const frontArmSwing = dir>0 ? -legSwing : legSwing;
-  const frontArmX = dir>0 ? bodyX+BW : bodyX-AW;
-  ctx.save();
-  ctx.translate(Math.round(sx+frontArmX+AW/2), Math.round(sy+armY));
-  ctx.rotate(frontArmSwing);
-  ctx.translate(-Math.round(sx+frontArmX+AW/2), -Math.round(sy+armY));
-  rd(frontArmX, armY, AW, AH, skin.shirt, skin.shirtD);
-  ctx.restore();
+  // ── tête ── (toujours par-dessus)
+  vr(-4, 0, 8, 8, skin.face, skin.hair);
+  // cheveux (haut)
+  fr(-4, 0, 8, 2, skin.hair);
+  // cheveux (arrière selon direction)
+  if(dir > 0) fr(-4, 0, 1.5, 8, skin.hair);
+  else         fr(2.5, 0, 1.5, 8, skin.hair);
 
-  // ── HEAD ──
-  // Main face
-  rd(headX, headY, HW, HH, skin.face, skin.hair);
-  // Hair top strip
-  r(headX, headY, HW, 2*sc, skin.hair);
-  // Hair side strip (direction-dependent)
-  if(dir>0) r(headX, headY, 1.5*sc, HH, skin.hair);
-  else r(headX+HW-1.5*sc, headY, 1.5*sc, HH, skin.hair);
-
-  // Eyes — 2 eyes visible from side, slightly different positions
-  if(dir>0){
-    // Right-facing: right eye is front, left eye is dim
-    r(headX+HW-3*sc, headY+3*sc, 2*sc, 2*sc, '#fff');
-    r(headX+HW-2.5*sc, headY+3.5*sc, 1.5*sc, 1.5*sc, '#222');
-    r(headX+2*sc, headY+3*sc, 1.5*sc, 2*sc, 'rgba(255,255,255,0.25)');
+  // œil avant
+  if(dir > 0){
+    fr(1.5, 3, 2, 2, '#fff');
+    fr(2,   3.5, 1.5, 1.5, '#111');
+    fr(-3,  3, 1.5, 1.5, 'rgba(255,255,255,0.18)'); // œil arrière (dim)
   } else {
-    r(headX+1*sc, headY+3*sc, 2*sc, 2*sc, '#fff');
-    r(headX+1*sc, headY+3.5*sc, 1.5*sc, 1.5*sc, '#222');
-    r(headX+HW-3.5*sc, headY+3*sc, 1.5*sc, 2*sc, 'rgba(255,255,255,0.25)');
+    fr(-3.5, 3, 2, 2, '#fff');
+    fr(-3.5, 3.5, 1.5, 1.5, '#111');
+    fr(1.5,  3, 1.5, 1.5, 'rgba(255,255,255,0.18)');
   }
-  // Nose dot
-  r(headX+HW/2-0.5*sc, headY+HH*0.55, 1*sc, 1*sc, 'rgba(0,0,0,0.25)');
-  // Mouth
-  r(headX+HW*0.25, headY+HH*0.72, HW*0.5, 1*sc, 'rgba(0,0,0,0.3)');
+  // bouche
+  fr(-2, 6, 4, 1, 'rgba(0,0,0,0.3)');
 
-  // ── NAME TAG ──
+  // ── nametag ──
   if(name){
-    ctx.font=`bold ${Math.round(10*sc)}px Inter,sans-serif`;
-    const nw=ctx.measureText(name).width;
-    const tagX=sx+cx-nw/2-4;
-    const tagY=sy-14*sc;
-    ctx.fillStyle='rgba(0,0,0,0.6)';
-    ctx.fillRect(Math.round(tagX),Math.round(tagY),Math.ceil(nw+8),Math.ceil(12*sc));
-    ctx.fillStyle=skin.name;
-    ctx.fillText(name,Math.round(tagX+4),Math.round(tagY+10*sc));
+    const fs = Math.max(9, Math.round(9 * U));
+    ctx.font = `bold ${fs}px Inter,sans-serif`;
+    const nw = ctx.measureText(name).width;
+    const tx = Math.round(CX - nw/2 - 4);
+    const ty = Math.round(TY - fs - 6);
+    ctx.fillStyle = 'rgba(0,0,0,0.6)';
+    ctx.fillRect(tx, ty, nw+8, fs+4);
+    ctx.fillStyle = skin.name;
+    ctx.fillText(name, tx+4, ty+fs);
   }
 
-  // ── HP BAR ──
-  if(hp<maxHp){
-    const bw=T*0.9,bh=3;
-    const bx=sx+T/2-bw/2, by=sy-6*sc;
-    ctx.fillStyle='#400';ctx.fillRect(Math.round(bx),Math.round(by),Math.ceil(bw),bh);
-    ctx.fillStyle='#0f0';ctx.fillRect(Math.round(bx),Math.round(by),Math.ceil(bw*(hp/maxHp)),bh);
+  // ── barre de vie ──
+  if(hp < maxHp){
+    const bw = P(16), bh = 3;
+    const bx = Math.round(CX - bw/2);
+    const by = Math.round(TY - P(2) - 4);
+    ctx.fillStyle = '#400'; ctx.fillRect(bx, by, bw, bh);
+    ctx.fillStyle = '#4f4'; ctx.fillRect(bx, by, Math.round(bw*(hp/maxHp)), bh);
   }
 }
-
 function drawMob(ctx,sx,sy,tile,mob){
   const sc=tile/32;
   const pr=(x,y,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(Math.round(sx+x*sc),Math.round(sy+y*sc),Math.ceil(w*sc),Math.ceil(h*sc));};
@@ -1064,10 +1044,11 @@ function giveStarter(){
 //  GAME LOOP
 // ══════════════════════════════════════════════════════════════
 let lastTs=0;
+let renderDt=0.016;
 function loop(ts){
   if(!inGame){requestAnimationFrame(loop);return;}
-  const dt=Math.min((ts-lastTs)/1000,0.05);lastTs=ts;
-  update(dt);render();
+  renderDt=Math.min((ts-lastTs)/1000,0.05);lastTs=ts;
+  update(renderDt);render();
   requestAnimationFrame(loop);
 }
 
@@ -1290,14 +1271,15 @@ function render(){
 
   // Walk animation
   const isWalking=Math.abs(PL.vx)>0.1&&PL.onGround;
-  if(isWalking)walkTime+=0.016;
+  if(isWalking) walkTime += renderDt * 4; // renderDt passed from loop
 
   // Other players
   for(const[,pd]of others){
     const{x,y}=w2s(pd.x,pd.y);
     if(x<-80||x>W+80)continue;
     const isOtherWalking=Math.abs((pd.prevX||pd.x)-pd.x)>0.01;
-    drawCharacter(ctx,x,y,TILE,pd.dir,getSkin(pd.id),pd.name,pd.hp,20,isOtherWalking);
+    const yAdj = y - (2.0-1.8)*TILE;
+    drawCharacter(ctx,x,yAdj,TILE,pd.dir,getSkin(pd.id),pd.name,pd.hp,20,isOtherWalking);
   }
 
   // Mobs
@@ -1307,9 +1289,10 @@ function render(){
     drawMob(ctx,x,y,TILE,m);
   }
 
-  // Player
+  // Player - décalé vers le haut car le modèle fait 2 blocs mais la hitbox 1.8
   const{x:px,y:py}=w2s(PL.x,PL.y);
-  drawCharacter(ctx,px,py,TILE,PL.dir,getSkin(myId),pName,PL.hp,20,isWalking);
+  const pyAdj = py - (2.0-1.8)*TILE; // décale pour que les pieds soient au bon endroit
+  drawCharacter(ctx,px,pyAdj,TILE,PL.dir,getSkin(myId),pName,PL.hp,20,isWalking);
 
   // Cursor highlight — use consistent center
   const wp=s2w(mouseX,mouseY);
