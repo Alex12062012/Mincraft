@@ -1063,29 +1063,21 @@ function update(dt){
 if(document.getElementById('death').classList.contains('show'))return;
 if(document.getElementById('chat-input-wrap').classList.contains('open'))return;
 
-// ─ Input
 let moveX=0;
 if(keys['KeyA']||keys['ArrowLeft'])  {moveX=-1;PL.dir=-1;}
 if(keys['KeyD']||keys['ArrowRight']) {moveX=1;PL.dir=1;}
 PL.vx=moveX*SPEED;
 
-// ─ Ladder Check
 const midX=Math.floor(PL.x+PL.w/2);
 const midY=Math.floor(PL.y+PL.h/2);
 const onLadder=getB(midX,midY)===B.LADDER||getB(midX,midY+1)===B.LADDER;
 
-// ─ Jump Logic (Buffer & Coyote)
 const jumpKey = (keys['KeyW']||keys['ArrowUp']||keys['Space']);
-
-// Coyote Time: Compte à rebours si on n'est pas au sol
 if(PL.onGround) PL.coyote = COYOTE_TIME;
 else PL.coyote -= dt;
-
-// Jump Buffer: Mémorise la pression de la touche
 if(jumpKey) PL.jumpBuf = JUMP_BUFFER;
 else PL.jumpBuf -= dt;
 
-// Déclenchement du saut
 if(PL.jumpBuf > 0 && PL.coyote > 0 && !onLadder){
     PL.vy = JUMP;
     PL.jumpBuf = 0;
@@ -1093,29 +1085,24 @@ if(PL.jumpBuf > 0 && PL.coyote > 0 && !onLadder){
     PL.onGround = false;
 }
 
-// Variable Jump Height: Coupe la vélocité si on relâche la touche en montant
 if(!jumpKey && PL.vy < 0){
     PL.vy *= 0.5; 
 }
 
-// ─ Gravity (Asymmetric & Frame-independent)
 if(onLadder){
     if(keys['KeyW']||keys['ArrowUp']||keys['Space'])PL.vy=-3.5;
     else if(keys['KeyS']||keys['ArrowDown'])PL.vy=2;
     else PL.vy*=0.8;
 }else{
-    // Gravité plus forte quand on tombe que quand on monte
     const gravity = (PL.vy < 0) ? GRAV_RISE : GRAV_FALL;
     PL.vy += gravity * dt; 
     if(PL.vy > 15) PL.vy = 15;
 }
 
-// ─ Move X
 const nx=PL.x+PL.vx*dt;
 if(!collidesX(nx,PL.y))PL.x=nx;
 else PL.vx=0;
 
-// ─ Move Y — substeps
 const steps=4;
 const stepDy=(PL.vy*dt)/steps;
 PL.onGround=false;
@@ -1136,17 +1123,14 @@ for(let s2=0;s2<steps;s2++){
 }
 PL.y=Math.max(0,Math.min(WH-PL.h-0.001,PL.y));
 
-// ─ Camera
 const targetCX=PL.x+PL.w/2;
 const targetCY=PL.y+PL.h/2;
 cam.x+=(targetCX-cam.x)*0.3;
 cam.y+=(targetCY-cam.y)*0.08;
 
-// ─ Chunks
 const vcx=Math.floor(cam.x/CHUNK);
 for(let c=vcx-5;c<=vcx+5;c++)reqChunk(c);
 
-// ─ Block breaking (inchangé)
 if(mDown&&!panelOpen()){
     const wp=s2w(mouseX,mouseY);
     const bx=Math.floor(wp.x),by=Math.floor(wp.y);
@@ -1170,114 +1154,11 @@ if(mDown&&!panelOpen()){
     }else breaking=null;
 }else breaking=null;
 
-// ─ Send position
 const now=performance.now();
 if(now-lastMove>50){send({type:'move',x:PL.x,y:PL.y,dir:PL.dir});lastMove=now;}
 document.getElementById('coords').innerHTML=`X: ${Math.floor(PL.x)} &nbsp;Y: ${Math.floor(PL.y)}`;
 }
-
-  // ─ Input — only e.code based (fixes AZERTY/QWERTY, sticky keys) ─
-  let moveX=0;
-  if(keys['KeyA']||keys['ArrowLeft'])  {moveX=-1;PL.dir=-1;}
-  if(keys['KeyD']||keys['ArrowRight']) {moveX=1;PL.dir=1;}
-  PL.vx=moveX*SPEED;
-
-  // ─ Ladder ─
-  const midX=Math.floor(PL.x+PL.w/2);
-  const midY=Math.floor(PL.y+PL.h/2);
-  const onLadder=getB(midX,midY)===B.LADDER||getB(midX,midY+1)===B.LADDER;
-  if(onLadder){
-    if(keys['KeyW']||keys['ArrowUp']||keys['Space'])PL.vy=-3.5;
-    else if(keys['KeyS']||keys['ArrowDown'])PL.vy=2;
-    else PL.vy*=0.8;
-  }else{
-    PL.vy=Math.min(PL.vy+GRAV,15);
-  }
-
-  // ─ Jump ─
-  if((keys['KeyW']||keys['ArrowUp']||keys['Space'])&&PL.onGround&&!onLadder){
-    PL.vy=JUMP;PL.onGround=false;
-  }
-
-  // ─ Move X ─
-  const nx=PL.x+PL.vx*dt;
-  if(!collidesX(nx,PL.y))PL.x=nx;
-  else PL.vx=0;
-
-  // ─ Move Y — substeps to prevent tunneling ─
-  const steps=4;
-  const stepDy=(PL.vy*dt)/steps;
-  PL.onGround=false;
-  for(let s2=0;s2<steps;s2++){
-    const ny=PL.y+stepDy;
-    if(collidesY(PL.x,ny)){
-      if(stepDy>0){
-        // Snap precisely to top of block — FIX: was `/ 1` before
-        PL.y=Math.floor(PL.y+PL.h)-PL.h;
-        PL.onGround=true;
-      }else{
-        PL.y=Math.ceil(ny)+0.001;
-      }
-      PL.vy=0;
-      break;
-    }else{
-      PL.y=ny;
-    }
-  }
-
-  PL.y=Math.max(0,Math.min(WH-PL.h-0.001,PL.y));
-
-  // ─ Camera: slow smooth Y = "basculement" camera feeling, no snap ─
-  const targetCX=PL.x+PL.w/2;
-  const targetCY=PL.y+PL.h/2;
-  cam.x+=(targetCX-cam.x)*0.3;
-  cam.y+=(targetCY-cam.y)*0.08;
-
-  // ─ Chunks ─
-  const vcx=Math.floor(cam.x/CHUNK);
-  for(let c=vcx-5;c<=vcx+5;c++)reqChunk(c);
-
-  // ─ Block breaking ─
-  if(mDown&&!panelOpen()){
-    const wp=s2w(mouseX,mouseY);
-    const bx=Math.floor(wp.x),by=Math.floor(wp.y);
-    const cx2=PL.x+PL.w/2,cy2=PL.y+PL.h/2;
-    const dist=Math.hypot(bx+.5-cx2,by+.5-cy2);
-    if(dist<6.5){
-      const b=getB(bx,by);
-      if(b!==B.AIR&&b!==B.WATER&&b!==B.LAVA&&b!==B.BEDROCK){
-        const hard=HARD[b]||6;
-        const spd=TSPEED[inv[activeSlot]?.i]||1;
-        const tot=Math.ceil(hard/spd);
-        if(!breaking||breaking.wx!==bx||breaking.wy!==by){breaking={wx:bx,wy:by,prog:0,total:tot};}
-        breaking.prog++;
-        if(breaking.prog>=breaking.total){
-          send({type:'break_block',x:bx,y:by});
-          setB(bx,by,B.AIR);
-          const drop=DROPS[b];if(drop)addInv(drop.i,drop.n);
-          breaking=null;
-        }
-      }else breaking=null;
-    }else breaking=null;
-  }else breaking=null;
-
-  // ─ Send position ─
-  const now=performance.now();
-  if(now-lastMove>50){send({type:'move',x:PL.x,y:PL.y,dir:PL.dir});lastMove=now;}
-
-  document.getElementById('coords').innerHTML=`X: ${Math.floor(PL.x)} &nbsp;Y: ${Math.floor(PL.y)}`;
-}
-
-// ─ Collision: more sample points for accuracy ─
-function collidesX(nx,y){
-  const lx=nx+0.02, rx=nx+PL.w-0.02;
-  for(const fy of[y+0.05,y+PL.h*0.33,y+PL.h*0.66,y+PL.h-0.05]){
-    if(isSolid(getB(Math.floor(lx),Math.floor(fy))))return true;
-    if(isSolid(getB(Math.floor(rx),Math.floor(fy))))return true;
-  }
-  return false;
-}
-
+ 
 function collidesY(x,ny){
   if(ny<0||ny+PL.h>=WH)return true;
   const lx=Math.floor(x+0.05),rx=Math.floor(x+PL.w-0.05),mx=Math.floor(x+PL.w/2);
