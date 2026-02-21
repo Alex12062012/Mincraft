@@ -494,11 +494,20 @@ function drawBlockToCanvas(ctx,id,s){
   const p=(x,y,w,h,color)=>{ctx.fillStyle=color;ctx.fillRect(Math.floor(x*s),Math.floor(y*s),Math.ceil(w*s),Math.ceil(h*s));};
   switch(id){
     case B.GRASS:
-      p(0,0,1,1,'#5a7a3a');p(0,0,1,0.22,'#4db040');
-      p(0.1,0.3,0.12,0.1,'#6b4f2a');p(0.5,0.5,0.1,0.12,'#6b4f2a');p(0.7,0.35,0.15,0.1,'#6b4f2a');
-      p(0.25,0.6,0.1,0.1,'#7a5f3a');p(0.8,0.65,0.12,0.08,'#7a5f3a');
-      p(0.05,0,0.05,0.15,'#5dc050');p(0.2,0,0.04,0.12,'#65d060');p(0.55,0.02,0.06,0.14,'#55b838');
-      p(0.75,0,0.05,0.13,'#5dc050');p(0.88,0.01,0.04,0.16,'#60c040');break;
+      // Fond terre (bas 80%)
+      p(0,0.2,1,0.8,'#7a5230');
+      p(0.1,0.25,0.15,0.12,'#6b4520');p(0.4,0.35,0.12,0.1,'#6b4520');p(0.7,0.28,0.14,0.11,'#6b4520');
+      p(0.2,0.55,0.1,0.14,'#8a6040');p(0.55,0.65,0.15,0.12,'#8a6040');p(0.8,0.5,0.1,0.1,'#8a6040');
+      // Bande verte (haut 22%)
+      p(0,0,1,0.22,'#4db040');
+      // Brins d'herbe qui dépassent vers le haut
+      p(0.05,0,0.05,0.12,'#5dc050');p(0.18,0,0.04,0.1,'#65d060');
+      p(0.52,0.02,0.06,0.12,'#55b838');p(0.73,0,0.05,0.11,'#5dc050');
+      p(0.87,0.01,0.04,0.14,'#60c040');p(0.35,0,0.04,0.09,'#6ad058');
+      // Transition herbe→terre (lisière irrégulière)
+      p(0.08,0.2,0.08,0.06,'#5a7a3a');p(0.25,0.18,0.1,0.05,'#4db040');
+      p(0.45,0.2,0.07,0.06,'#5a7a3a');p(0.65,0.19,0.09,0.05,'#4db040');
+      p(0.82,0.2,0.08,0.06,'#5a7a3a');break;
     case B.DIRT:
       p(0,0,1,1,'#7a5230');
       p(0.1,0.1,0.15,0.12,'#6b4520');p(0.4,0.25,0.12,0.1,'#6b4520');p(0.7,0.15,0.14,0.11,'#6b4520');
@@ -781,17 +790,7 @@ function drawCharacter(ctx, sx, sy, tile, dir, skin, name, hp=20, maxHp=20, isWa
     ctx.fillRect(ax(ux), ay(uy) + p(uh) - sh, p(uw), sh); // bas
   };
 
-  // Membre rotatif — pivot à (pivX, pivY) en coords absolues écran
-  // Le drawFn dessine avec l'origine au pivot (translate déjà fait)
-  const rotLimb = (pivX, pivY, angle, drawFn) => {
-    ctx.save();
-    ctx.translate(pivX, pivY);
-    ctx.rotate(angle);
-    drawFn();
-    ctx.restore();
-  };
-
-  // Animation de marche
+  // Animation de marche — quand sw=0 (immobile), les membres sont droits, pas de fantôme
   const sw = isWalking ? Math.sin(walkTime * 6.5) * 0.36 : 0;
 
   // ── Ombre au sol ──
@@ -800,82 +799,83 @@ function drawCharacter(ctx, sx, sy, tile, dir, skin, name, hp=20, maxHp=20, isWa
   ctx.ellipse(CX, ay(32), p(6), p(2), 0, 0, Math.PI * 2);
   ctx.fill();
 
-  // ━━ ORDRE DE DESSIN (peintre) : arrière → milieu → avant ━━
+  // ━━ ORDRE DE DESSIN : arrière → corps → avant ━━
 
   // ── Bras arrière ──
-  // Pivot = épaule arrière (haut du bras, côté opposé à dir)
   {
-    const bArmPivX = ax(dir > 0 ? -4 : 4);
-    const bArmPivY = ay(8);
-    rotLimb(bArmPivX, bArmPivY, dir > 0 ? sw : -sw, () => {
-      ctx.fillStyle = skin.shirtD;
-      ctx.fillRect(-p(2), 0, p(4), p(12));
-    });
+    const pivX = ax(dir > 0 ? -4 : 4);
+    const pivY = ay(8);
+    ctx.save();
+    ctx.translate(pivX, pivY);
+    ctx.rotate(dir > 0 ? sw : -sw);
+    ctx.fillStyle = skin.shirtD;
+    ctx.fillRect(-p(2), 0, p(4), p(12));
+    ctx.restore();
   }
 
   // ── Jambe arrière ──
   {
-    const bLegPivX = ax(dir > 0 ? -2 : 2);
-    const bLegPivY = ay(20);
-    rotLimb(bLegPivX, bLegPivY, dir > 0 ? sw : -sw, () => {
-      ctx.fillStyle = skin.pantsD;
-      ctx.fillRect(-p(2), 0, p(4), p(10));
-      ctx.fillStyle = skin.shoes;
-      ctx.fillRect(-p(2), p(10), p(4), p(2));
-    });
+    const pivX = ax(dir > 0 ? -2 : 2);
+    const pivY = ay(20);
+    ctx.save();
+    ctx.translate(pivX, pivY);
+    ctx.rotate(dir > 0 ? sw : -sw);
+    ctx.fillStyle = skin.pantsD;
+    ctx.fillRect(-p(2), 0, p(4), p(10));
+    ctx.fillStyle = skin.shoes;
+    ctx.fillRect(-p(2), p(10), p(4), p(2));
+    ctx.restore();
   }
 
-  // ── Corps ──
+  // ── Corps (torso uniquement, pas de recouvrement sur les bras) ──
   cube(-4, 8, 8, 12, skin.shirt, skin.shirtD);
-  // ceinture
   rect(-4, 18, 8, 1.5, '#181818');
 
   // ── Jambe avant ──
   {
-    const fLegPivX = ax(dir > 0 ? 2 : -2);
-    const fLegPivY = ay(20);
-    rotLimb(fLegPivX, fLegPivY, dir > 0 ? -sw : sw, () => {
-      ctx.fillStyle = skin.pants;
-      ctx.fillRect(-p(2), 0, p(4), p(10));
-      ctx.fillStyle = skin.pantsD; // ombre côté visible
-      ctx.fillRect(-p(2) + p(3), 0, Math.max(1, Math.round(U * 1.2)), p(10));
-      ctx.fillStyle = skin.shoes;
-      ctx.fillRect(-p(2), p(10), p(4), p(2));
-    });
+    const pivX = ax(dir > 0 ? 2 : -2);
+    const pivY = ay(20);
+    ctx.save();
+    ctx.translate(pivX, pivY);
+    ctx.rotate(dir > 0 ? -sw : sw);
+    ctx.fillStyle = skin.pants;
+    ctx.fillRect(-p(2), 0, p(4), p(10));
+    ctx.fillStyle = skin.pantsD;
+    ctx.fillRect(p(1), 0, Math.max(1, Math.round(U*1.2)), p(10));
+    ctx.fillStyle = skin.shoes;
+    ctx.fillRect(-p(2), p(10), p(4), p(2));
+    ctx.restore();
   }
 
   // ── Bras avant ──
   {
-    const fArmPivX = ax(dir > 0 ? 4 : -4);
-    const fArmPivY = ay(8);
-    rotLimb(fArmPivX, fArmPivY, dir > 0 ? -sw : sw, () => {
-      ctx.fillStyle = skin.shirt;
-      ctx.fillRect(-p(2), 0, p(4), p(12));
-      ctx.fillStyle = skin.shirtD;
-      ctx.fillRect(-p(2) + p(3), 0, Math.max(1, Math.round(U * 1.2)), p(12));
-    });
+    const pivX = ax(dir > 0 ? 4 : -4);
+    const pivY = ay(8);
+    ctx.save();
+    ctx.translate(pivX, pivY);
+    ctx.rotate(dir > 0 ? -sw : sw);
+    ctx.fillStyle = skin.shirt;
+    ctx.fillRect(-p(2), 0, p(4), p(12));
+    ctx.fillStyle = skin.shirtD;
+    ctx.fillRect(p(1), 0, Math.max(1, Math.round(U*1.2)), p(12));
+    ctx.restore();
   }
 
-  // ── Tête ── (toujours par-dessus, dessinée en dernier)
+  // ── Tête ──
   cube(-4, 0, 8, 8, skin.face, skin.hair);
-  // Cheveux haut
   rect(-4, 0, 8, 1.5, skin.hair);
-  // Cheveux arrière (côté opposé à la direction du regard)
   if(dir > 0) rect(-4, 0, 1.5, 8, skin.hair);
   else         rect(2.5, 0, 1.5, 8, skin.hair);
 
-  // Œil avant (vif)
   if(dir > 0){
-    rect(1.5,  3,   2,   2,   '#fff');
-    rect(2,    3.5, 1.5, 1.5, '#111');
-    // Œil arrière (dim, visible de côté)
-    rect(-3.5, 3,   1.5, 1.5, 'rgba(255,255,255,0.2)');
+    rect(1.5, 3, 2, 2, '#fff');
+    rect(2, 3.5, 1.5, 1.5, '#111');
+    rect(-3.5, 3, 1.5, 1.5, 'rgba(255,255,255,0.2)');
   } else {
-    rect(-3.5, 3,   2,   2,   '#fff');
+    rect(-3.5, 3, 2, 2, '#fff');
     rect(-3.5, 3.5, 1.5, 1.5, '#111');
-    rect(2,    3,   1.5, 1.5, 'rgba(255,255,255,0.2)');
+    rect(2, 3, 1.5, 1.5, 'rgba(255,255,255,0.2)');
   }
-  // Bouche
   rect(-2, 6, 4, 1, 'rgba(0,0,0,0.28)');
 
   // ── Nametag ──
@@ -938,6 +938,7 @@ const PL={
   x:0,y:0,vx:0,vy:0,
   hp:20,maxHp:20,
   onGround:false,
+  coyote:0,jumpPressed:false,
   w:0.8,h:1.8,
   dir:1,
   spawnX:0,spawnY:0,
@@ -1091,7 +1092,7 @@ function loop(ts){
 // ══════════════════════════════════════════════════════════════
 //  PHYSICS — fixed collision, smooth camera
 // ══════════════════════════════════════════════════════════════
-const GRAV=0.4,JUMP=-8.5,SPEED=4.5;
+const GRAV=28,JUMP=-10.5,SPEED=4.5;
 
 function update(dt){
   if(document.getElementById('death').classList.contains('show'))return;
@@ -1107,17 +1108,26 @@ function update(dt){
   const midX=Math.floor(PL.x+PL.w/2);
   const midY=Math.floor(PL.y+PL.h/2);
   const onLadder=getB(midX,midY)===B.LADDER||getB(midX,midY+1)===B.LADDER;
+
+  // ─ Jump — vérifié AVANT la gravité, coyote time pour plus de réactivité ─
+  const jumpKey=(keys['KeyW']||keys['ArrowUp']||keys['Space']);
+  if(PL.onGround) PL.coyote=0.1;
+  else if(PL.coyote>0) PL.coyote-=dt;
+
+  if(jumpKey&&!PL.jumpPressed&&PL.coyote>0&&!onLadder){
+    PL.vy=JUMP;
+    PL.coyote=0;
+    PL.onGround=false;
+  }
+  PL.jumpPressed=jumpKey;
+
+  // ─ Gravité (indépendante du framerate via dt) ─
   if(onLadder){
-    if(keys['KeyW']||keys['ArrowUp']||keys['Space'])PL.vy=-3.5;
+    if(jumpKey)PL.vy=-3.5;
     else if(keys['KeyS']||keys['ArrowDown'])PL.vy=2;
     else PL.vy*=0.8;
   }else{
-    PL.vy=Math.min(PL.vy+GRAV,15);
-  }
-
-  // ─ Jump ─
-  if((keys['KeyW']||keys['ArrowUp']||keys['Space'])&&PL.onGround&&!onLadder){
-    PL.vy=JUMP;PL.onGround=false;
+    PL.vy=Math.min(PL.vy+GRAV*dt, 15);
   }
 
   // ─ Move X ─
