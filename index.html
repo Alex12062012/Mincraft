@@ -730,138 +730,174 @@ function getSkin(pid){ let h=0; for(const c of(pid||'')) h=(h*31+c.charCodeAt(0)
   sx = écran X du coin haut-gauche de la hitbox (PL.x en monde → écran).
   Le centre X est : sx + PL.w/2 * TILE
 */
+/*
+ * drawCharacter — Steve Minecraft vue de côté, proportions pixel-perfect
+ *
+ * Appel : drawCharacter(ctx, sx, sy, tile, dir, skin, name, hp, maxHp, isWalking)
+ *   sx, sy  = coin haut-gauche de la hitbox monde→écran (w2s(pl.x, pl.y))
+ *   tile    = TILE (pixels par bloc)
+ *   dir     = 1 (droite) ou -1 (gauche)
+ *
+ * Modèle Minecraft (unités MC, 1u = 1/16 bloc dans le jeu original) :
+ *   Tête  : 8×8u
+ *   Corps : 8×12u
+ *   Jambe : 4×12u (×2)
+ *   Bras  : 4×12u (×2, accolés aux côtés du corps)
+ *   Total : 32u de haut, 16u de large (avec bras)
+ *
+ * On veut que le modèle fasse exactement 2 blocs de haut à l'écran.
+ * → 1u = tile/16 pixels    (32u * tile/16 = 2*tile px)
+ * La hitbox fait 1.8 blocs → décalage de 0.2*tile vers le haut
+ * La largeur totale = 16u * tile/16 = 1 bloc = tile px (centré sur hitbox 0.8 bloc)
+ */
 function drawCharacter(ctx, sx, sy, tile, dir, skin, name, hp=20, maxHp=20, isWalking=false){
-  // 1 unité MC = combien de pixels ?
-  // Steve fait 32 unités de haut = 2 blocs dans Minecraft
-  // On le scale à 1.8 blocs (hitbox) mais avec le modèle visible un peu plus grand
-  const U = (2.0 * tile) / 32;   // 2 blocs de haut = bien visible
+  // 1 unité MC → pixels
+  const U = tile / 16;
 
-  // Centre X écran (centré sur la hitbox 0.8 bloc)
-  const CX = Math.round(sx + PL.w * tile / 2);
-  const TY = Math.round(sy);   // haut du personnage
+  // Centre X : milieu de la hitbox (0.8 bloc de large)
+  const CX = Math.round(sx + 0.4 * tile);
+  // Haut du modèle : décalé de 0.2 blocs vers le haut (modèle 2 blocs, hitbox 1.8)
+  const TY = Math.round(sy - 0.2 * tile);
 
-  // Animation marche
-  const sw2 = isWalking ? Math.sin(walkTime * 7) * 0.38 : 0;
+  // ─ Helpers ─
+  const p   = (u) => Math.max(1, Math.round(u * U));
+  // coordonnée X absolue depuis CX (ux en unités centrées sur le body)
+  const ax  = (ux) => Math.round(CX + ux * U);
+  // coordonnée Y absolue depuis TY
+  const ay  = (uy) => Math.round(TY + uy * U);
 
-  // ── raccourcis ──
-  // px en pixels depuis CX (unités MC, centré sur body)
-  const X = (u) => Math.round(CX + u * U);
-  // py en pixels depuis TY
-  const Y = (u) => Math.round(TY + u * U);
-  // taille en pixels
-  const P = (u) => Math.max(1, Math.round(u * U));
-
-  // Rect plein (coords en unités MC)
-  const fr = (ux, uy, uw, uh, c) => {
-    ctx.fillStyle = c;
-    ctx.fillRect(X(ux), Y(uy), P(uw), P(uh));
+  // Rect rempli — ux centré sur body (0=milieu), uy depuis le haut du modèle
+  const rect = (ux, uy, uw, uh, col) => {
+    ctx.fillStyle = col;
+    ctx.fillRect(ax(ux), ay(uy), p(uw), p(uh));
   };
 
-  // Rect avec ombre droite + bas (effet volume cube)
-  const vr = (ux, uy, uw, uh, c, d) => {
-    fr(ux, uy, uw, uh, c);
-    const s = Math.max(1, Math.round(1.5*U));
-    ctx.fillStyle = d;
-    ctx.fillRect(X(ux)+P(uw)-s, Y(uy), s, P(uh));   // droite
-    ctx.fillRect(X(ux), Y(uy)+P(uh)-s, P(uw), s);   // bas
+  // Rect avec ombre (côté droit + bas) → effet cube papercraft
+  const cube = (ux, uy, uw, uh, col, dark) => {
+    rect(ux, uy, uw, uh, col);
+    const sh = Math.max(1, Math.round(U * 1.5));
+    ctx.fillStyle = dark;
+    ctx.fillRect(ax(ux) + p(uw) - sh, ay(uy), sh, p(uh)); // droite
+    ctx.fillRect(ax(ux), ay(uy) + p(uh) - sh, p(uw), sh); // bas
   };
 
-  // Membre rotatif. pivX/pivY en unités MC (point de pivot = épaule/hanche)
-  // drawFn dessine avec ctx.translate déjà fait au pivot
-  const limb = (pivUX, pivUY, angle, drawFn) => {
+  // Membre rotatif — pivot à (pivX, pivY) en coords absolues écran
+  // Le drawFn dessine avec l'origine au pivot (translate déjà fait)
+  const rotLimb = (pivX, pivY, angle, drawFn) => {
     ctx.save();
-    ctx.translate(X(pivUX), Y(pivUY));
+    ctx.translate(pivX, pivY);
     ctx.rotate(angle);
     drawFn();
     ctx.restore();
   };
 
-  // ── ombre au sol ──
-  ctx.fillStyle = 'rgba(0,0,0,0.2)';
+  // Animation de marche
+  const sw = isWalking ? Math.sin(walkTime * 6.5) * 0.36 : 0;
+
+  // ── Ombre au sol ──
+  ctx.fillStyle = 'rgba(0,0,0,0.18)';
   ctx.beginPath();
-  ctx.ellipse(CX, Y(32), P(6), P(2), 0, 0, Math.PI*2);
+  ctx.ellipse(CX, ay(32), p(6), p(2), 0, 0, Math.PI * 2);
   ctx.fill();
 
-  // ── bras arrière ── (derrière tout)
-  // Le bras gauche est derrière quand on regarde à droite
-  limb(dir>0 ? -4 : 4, 8, dir>0 ? sw2 : -sw2, () => {
-    ctx.fillStyle = skin.shirtD;
-    ctx.fillRect(-P(2), 0, P(4), P(12));
-  });
+  // ━━ ORDRE DE DESSIN (peintre) : arrière → milieu → avant ━━
 
-  // ── jambe arrière ──
-  limb(dir>0 ? -2 : 2, 20, dir>0 ? sw2 : -sw2, () => {
-    ctx.fillStyle = skin.pantsD;
-    ctx.fillRect(-P(2), 0, P(4), P(10));
-    ctx.fillStyle = skin.shoes;
-    ctx.fillRect(-P(2), P(10), P(4), P(2));
-  });
-
-  // ── corps ──
-  vr(-4, 8, 8, 12, skin.shirt, skin.shirtD);
-  // ceinture
-  fr(-4, 18, 8, 2, '#1e1e1e');
-
-  // ── jambe avant ──
-  limb(dir>0 ? 2 : -2, 20, dir>0 ? -sw2 : sw2, () => {
-    ctx.fillStyle = skin.pants;
-    ctx.fillRect(-P(2), 0, P(4), P(10));
-    // ombre droite
-    ctx.fillStyle = skin.pantsD;
-    ctx.fillRect(-P(2)+P(3), 0, Math.max(1,Math.round(1.3*U)), P(10));
-    ctx.fillStyle = skin.shoes;
-    ctx.fillRect(-P(2), P(10), P(4), P(2));
-  });
-
-  // ── bras avant ──
-  limb(dir>0 ? 4 : -4, 8, dir>0 ? -sw2 : sw2, () => {
-    ctx.fillStyle = skin.shirt;
-    ctx.fillRect(-P(2), 0, P(4), P(12));
-    ctx.fillStyle = skin.shirtD;
-    ctx.fillRect(-P(2)+P(3), 0, Math.max(1,Math.round(1.3*U)), P(12));
-  });
-
-  // ── tête ── (toujours par-dessus)
-  vr(-4, 0, 8, 8, skin.face, skin.hair);
-  // cheveux (haut)
-  fr(-4, 0, 8, 2, skin.hair);
-  // cheveux (arrière selon direction)
-  if(dir > 0) fr(-4, 0, 1.5, 8, skin.hair);
-  else         fr(2.5, 0, 1.5, 8, skin.hair);
-
-  // œil avant
-  if(dir > 0){
-    fr(1.5, 3, 2, 2, '#fff');
-    fr(2,   3.5, 1.5, 1.5, '#111');
-    fr(-3,  3, 1.5, 1.5, 'rgba(255,255,255,0.18)'); // œil arrière (dim)
-  } else {
-    fr(-3.5, 3, 2, 2, '#fff');
-    fr(-3.5, 3.5, 1.5, 1.5, '#111');
-    fr(1.5,  3, 1.5, 1.5, 'rgba(255,255,255,0.18)');
+  // ── Bras arrière ──
+  // Pivot = épaule arrière (haut du bras, côté opposé à dir)
+  {
+    const bArmPivX = ax(dir > 0 ? -4 : 4);
+    const bArmPivY = ay(8);
+    rotLimb(bArmPivX, bArmPivY, dir > 0 ? sw : -sw, () => {
+      ctx.fillStyle = skin.shirtD;
+      ctx.fillRect(-p(2), 0, p(4), p(12));
+    });
   }
-  // bouche
-  fr(-2, 6, 4, 1, 'rgba(0,0,0,0.3)');
 
-  // ── nametag ──
+  // ── Jambe arrière ──
+  {
+    const bLegPivX = ax(dir > 0 ? -2 : 2);
+    const bLegPivY = ay(20);
+    rotLimb(bLegPivX, bLegPivY, dir > 0 ? sw : -sw, () => {
+      ctx.fillStyle = skin.pantsD;
+      ctx.fillRect(-p(2), 0, p(4), p(10));
+      ctx.fillStyle = skin.shoes;
+      ctx.fillRect(-p(2), p(10), p(4), p(2));
+    });
+  }
+
+  // ── Corps ──
+  cube(-4, 8, 8, 12, skin.shirt, skin.shirtD);
+  // ceinture
+  rect(-4, 18, 8, 1.5, '#181818');
+
+  // ── Jambe avant ──
+  {
+    const fLegPivX = ax(dir > 0 ? 2 : -2);
+    const fLegPivY = ay(20);
+    rotLimb(fLegPivX, fLegPivY, dir > 0 ? -sw : sw, () => {
+      ctx.fillStyle = skin.pants;
+      ctx.fillRect(-p(2), 0, p(4), p(10));
+      ctx.fillStyle = skin.pantsD; // ombre côté visible
+      ctx.fillRect(-p(2) + p(3), 0, Math.max(1, Math.round(U * 1.2)), p(10));
+      ctx.fillStyle = skin.shoes;
+      ctx.fillRect(-p(2), p(10), p(4), p(2));
+    });
+  }
+
+  // ── Bras avant ──
+  {
+    const fArmPivX = ax(dir > 0 ? 4 : -4);
+    const fArmPivY = ay(8);
+    rotLimb(fArmPivX, fArmPivY, dir > 0 ? -sw : sw, () => {
+      ctx.fillStyle = skin.shirt;
+      ctx.fillRect(-p(2), 0, p(4), p(12));
+      ctx.fillStyle = skin.shirtD;
+      ctx.fillRect(-p(2) + p(3), 0, Math.max(1, Math.round(U * 1.2)), p(12));
+    });
+  }
+
+  // ── Tête ── (toujours par-dessus, dessinée en dernier)
+  cube(-4, 0, 8, 8, skin.face, skin.hair);
+  // Cheveux haut
+  rect(-4, 0, 8, 1.5, skin.hair);
+  // Cheveux arrière (côté opposé à la direction du regard)
+  if(dir > 0) rect(-4, 0, 1.5, 8, skin.hair);
+  else         rect(2.5, 0, 1.5, 8, skin.hair);
+
+  // Œil avant (vif)
+  if(dir > 0){
+    rect(1.5,  3,   2,   2,   '#fff');
+    rect(2,    3.5, 1.5, 1.5, '#111');
+    // Œil arrière (dim, visible de côté)
+    rect(-3.5, 3,   1.5, 1.5, 'rgba(255,255,255,0.2)');
+  } else {
+    rect(-3.5, 3,   2,   2,   '#fff');
+    rect(-3.5, 3.5, 1.5, 1.5, '#111');
+    rect(2,    3,   1.5, 1.5, 'rgba(255,255,255,0.2)');
+  }
+  // Bouche
+  rect(-2, 6, 4, 1, 'rgba(0,0,0,0.28)');
+
+  // ── Nametag ──
   if(name){
-    const fs = Math.max(9, Math.round(9 * U));
+    const fs = Math.max(9, Math.round(U * 5));
     ctx.font = `bold ${fs}px Inter,sans-serif`;
     const nw = ctx.measureText(name).width;
-    const tx = Math.round(CX - nw/2 - 4);
-    const ty = Math.round(TY - fs - 6);
-    ctx.fillStyle = 'rgba(0,0,0,0.6)';
-    ctx.fillRect(tx, ty, nw+8, fs+4);
+    const tx = Math.round(CX - nw / 2 - 4);
+    const ty = Math.round(TY - fs - 4);
+    ctx.fillStyle = 'rgba(0,0,0,0.65)';
+    ctx.fillRect(tx, ty, nw + 8, fs + 4);
     ctx.fillStyle = skin.name;
-    ctx.fillText(name, tx+4, ty+fs);
+    ctx.fillText(name, tx + 4, ty + fs);
   }
 
-  // ── barre de vie ──
+  // ── Barre de vie ──
   if(hp < maxHp){
-    const bw = P(16), bh = 3;
-    const bx = Math.round(CX - bw/2);
-    const by = Math.round(TY - P(2) - 4);
+    const bw = p(16), bh = 3;
+    const bx = Math.round(CX - bw / 2);
+    const by = Math.round(TY - 3);
     ctx.fillStyle = '#400'; ctx.fillRect(bx, by, bw, bh);
-    ctx.fillStyle = '#4f4'; ctx.fillRect(bx, by, Math.round(bw*(hp/maxHp)), bh);
+    ctx.fillStyle = '#4f4'; ctx.fillRect(bx, by, Math.round(bw * (hp / maxHp)), bh);
   }
 }
 function drawMob(ctx,sx,sy,tile,mob){
@@ -902,7 +938,6 @@ const PL={
   x:0,y:0,vx:0,vy:0,
   hp:20,maxHp:20,
   onGround:false,
-  coyote:0, jumpBuf:0,
   w:0.8,h:1.8,
   dir:1,
   spawnX:0,spawnY:0,
@@ -1056,109 +1091,114 @@ function loop(ts){
 // ══════════════════════════════════════════════════════════════
 //  PHYSICS — fixed collision, smooth camera
 // ══════════════════════════════════════════════════════════════
-const GRAV_RISE = 25, GRAV_FALL = 35, JUMP = -11, SPEED = 4.5;
-const COYOTE_TIME = 0.1, JUMP_BUFFER = 0.1;
+const GRAV=0.4,JUMP=-8.5,SPEED=4.5;
 
 function update(dt){
-if(document.getElementById('death').classList.contains('show'))return;
-if(document.getElementById('chat-input-wrap').classList.contains('open'))return;
+  if(document.getElementById('death').classList.contains('show'))return;
+  if(document.getElementById('chat-input-wrap').classList.contains('open'))return;
 
-let moveX=0;
-if(keys['KeyA']||keys['ArrowLeft'])  {moveX=-1;PL.dir=-1;}
-if(keys['KeyD']||keys['ArrowRight']) {moveX=1;PL.dir=1;}
-PL.vx=moveX*SPEED;
+  // ─ Input — only e.code based (fixes AZERTY/QWERTY, sticky keys) ─
+  let moveX=0;
+  if(keys['KeyA']||keys['ArrowLeft'])  {moveX=-1;PL.dir=-1;}
+  if(keys['KeyD']||keys['ArrowRight']) {moveX=1;PL.dir=1;}
+  PL.vx=moveX*SPEED;
 
-const midX=Math.floor(PL.x+PL.w/2);
-const midY=Math.floor(PL.y+PL.h/2);
-const onLadder=getB(midX,midY)===B.LADDER||getB(midX,midY+1)===B.LADDER;
-
-const jumpKey = (keys['KeyW']||keys['ArrowUp']||keys['Space']);
-if(PL.onGround) PL.coyote = COYOTE_TIME;
-else PL.coyote -= dt;
-if(jumpKey) PL.jumpBuf = JUMP_BUFFER;
-else PL.jumpBuf -= dt;
-
-if(PL.jumpBuf > 0 && PL.coyote > 0 && !onLadder){
-    PL.vy = JUMP;
-    PL.jumpBuf = 0;
-    PL.coyote = 0;
-    PL.onGround = false;
-}
-
-if(!jumpKey && PL.vy < 0){
-    PL.vy *= 0.5; 
-}
-
-if(onLadder){
+  // ─ Ladder ─
+  const midX=Math.floor(PL.x+PL.w/2);
+  const midY=Math.floor(PL.y+PL.h/2);
+  const onLadder=getB(midX,midY)===B.LADDER||getB(midX,midY+1)===B.LADDER;
+  if(onLadder){
     if(keys['KeyW']||keys['ArrowUp']||keys['Space'])PL.vy=-3.5;
     else if(keys['KeyS']||keys['ArrowDown'])PL.vy=2;
     else PL.vy*=0.8;
-}else{
-    const gravity = (PL.vy < 0) ? GRAV_RISE : GRAV_FALL;
-    PL.vy += gravity * dt; 
-    if(PL.vy > 15) PL.vy = 15;
-}
+  }else{
+    PL.vy=Math.min(PL.vy+GRAV,15);
+  }
 
-const nx=PL.x+PL.vx*dt;
-if(!collidesX(nx,PL.y))PL.x=nx;
-else PL.vx=0;
+  // ─ Jump ─
+  if((keys['KeyW']||keys['ArrowUp']||keys['Space'])&&PL.onGround&&!onLadder){
+    PL.vy=JUMP;PL.onGround=false;
+  }
 
-const steps=4;
-const stepDy=(PL.vy*dt)/steps;
-PL.onGround=false;
-for(let s2=0;s2<steps;s2++){
+  // ─ Move X ─
+  const nx=PL.x+PL.vx*dt;
+  if(!collidesX(nx,PL.y))PL.x=nx;
+  else PL.vx=0;
+
+  // ─ Move Y — substeps to prevent tunneling ─
+  const steps=4;
+  const stepDy=(PL.vy*dt)/steps;
+  PL.onGround=false;
+  for(let s2=0;s2<steps;s2++){
     const ny=PL.y+stepDy;
     if(collidesY(PL.x,ny)){
-        if(stepDy>0){
-            PL.y=Math.floor(PL.y+PL.h)-PL.h;
-            PL.onGround=true;
-        }else{
-            PL.y=Math.ceil(ny)+0.001;
-        }
-        PL.vy=0;
-        break;
+      if(stepDy>0){
+        // Snap precisely to top of block — FIX: was `/ 1` before
+        PL.y=Math.floor(PL.y+PL.h)-PL.h;
+        PL.onGround=true;
+      }else{
+        PL.y=Math.ceil(ny)+0.001;
+      }
+      PL.vy=0;
+      break;
     }else{
-        PL.y=ny;
+      PL.y=ny;
     }
-}
-PL.y=Math.max(0,Math.min(WH-PL.h-0.001,PL.y));
+  }
 
-const targetCX=PL.x+PL.w/2;
-const targetCY=PL.y+PL.h/2;
-cam.x+=(targetCX-cam.x)*0.3;
-cam.y+=(targetCY-cam.y)*0.08;
+  PL.y=Math.max(0,Math.min(WH-PL.h-0.001,PL.y));
 
-const vcx=Math.floor(cam.x/CHUNK);
-for(let c=vcx-5;c<=vcx+5;c++)reqChunk(c);
+  // ─ Camera: slow smooth Y = "basculement" camera feeling, no snap ─
+  const targetCX=PL.x+PL.w/2;
+  const targetCY=PL.y+PL.h/2;
+  cam.x+=(targetCX-cam.x)*0.3;
+  cam.y+=(targetCY-cam.y)*0.08;
 
-if(mDown&&!panelOpen()){
+  // ─ Chunks ─
+  const vcx=Math.floor(cam.x/CHUNK);
+  for(let c=vcx-5;c<=vcx+5;c++)reqChunk(c);
+
+  // ─ Block breaking ─
+  if(mDown&&!panelOpen()){
     const wp=s2w(mouseX,mouseY);
     const bx=Math.floor(wp.x),by=Math.floor(wp.y);
     const cx2=PL.x+PL.w/2,cy2=PL.y+PL.h/2;
     const dist=Math.hypot(bx+.5-cx2,by+.5-cy2);
     if(dist<6.5){
-        const b=getB(bx,by);
-        if(b!==B.AIR&&b!==B.WATER&&b!==B.LAVA&&b!==B.BEDROCK){
-            const hard=HARD[b]||6;
-            const spd=TSPEED[inv[activeSlot]?.i]||1;
-            const tot=Math.ceil(hard/spd);
-            if(!breaking||breaking.wx!==bx||breaking.wy!==by){breaking={wx:bx,wy:by,prog:0,total:tot};}
-            breaking.prog++;
-            if(breaking.prog>=breaking.total){
-                send({type:'break_block',x:bx,y:by});
-                setB(bx,by,B.AIR);
-                const drop=DROPS[b];if(drop)addInv(drop.i,drop.n);
-                breaking=null;
-            }
-        }else breaking=null;
+      const b=getB(bx,by);
+      if(b!==B.AIR&&b!==B.WATER&&b!==B.LAVA&&b!==B.BEDROCK){
+        const hard=HARD[b]||6;
+        const spd=TSPEED[inv[activeSlot]?.i]||1;
+        const tot=Math.ceil(hard/spd);
+        if(!breaking||breaking.wx!==bx||breaking.wy!==by){breaking={wx:bx,wy:by,prog:0,total:tot};}
+        breaking.prog++;
+        if(breaking.prog>=breaking.total){
+          send({type:'break_block',x:bx,y:by});
+          setB(bx,by,B.AIR);
+          const drop=DROPS[b];if(drop)addInv(drop.i,drop.n);
+          breaking=null;
+        }
+      }else breaking=null;
     }else breaking=null;
-}else breaking=null;
+  }else breaking=null;
 
-const now=performance.now();
-if(now-lastMove>50){send({type:'move',x:PL.x,y:PL.y,dir:PL.dir});lastMove=now;}
-document.getElementById('coords').innerHTML=`X: ${Math.floor(PL.x)} &nbsp;Y: ${Math.floor(PL.y)}`;
+  // ─ Send position ─
+  const now=performance.now();
+  if(now-lastMove>50){send({type:'move',x:PL.x,y:PL.y,dir:PL.dir});lastMove=now;}
+
+  document.getElementById('coords').innerHTML=`X: ${Math.floor(PL.x)} &nbsp;Y: ${Math.floor(PL.y)}`;
 }
- 
+
+// ─ Collision: more sample points for accuracy ─
+function collidesX(nx,y){
+  const lx=nx+0.02, rx=nx+PL.w-0.02;
+  for(const fy of[y+0.05,y+PL.h*0.33,y+PL.h*0.66,y+PL.h-0.05]){
+    if(isSolid(getB(Math.floor(lx),Math.floor(fy))))return true;
+    if(isSolid(getB(Math.floor(rx),Math.floor(fy))))return true;
+  }
+  return false;
+}
+
 function collidesY(x,ny){
   if(ny<0||ny+PL.h>=WH)return true;
   const lx=Math.floor(x+0.05),rx=Math.floor(x+PL.w-0.05),mx=Math.floor(x+PL.w/2);
@@ -1274,8 +1314,7 @@ function render(){
     const{x,y}=w2s(pd.x,pd.y);
     if(x<-80||x>W+80)continue;
     const isOtherWalking=Math.abs((pd.prevX||pd.x)-pd.x)>0.01;
-    const yAdj = y - (2.0-1.8)*TILE;
-    drawCharacter(ctx,x,yAdj,TILE,pd.dir,getSkin(pd.id),pd.name,pd.hp,20,isOtherWalking);
+    drawCharacter(ctx,x,y,TILE,pd.dir,getSkin(pd.id),pd.name,pd.hp,20,isOtherWalking);
   }
 
   // Mobs
@@ -1285,10 +1324,9 @@ function render(){
     drawMob(ctx,x,y,TILE,m);
   }
 
-  // Player - décalé vers le haut car le modèle fait 2 blocs mais la hitbox 1.8
+  // Player
   const{x:px,y:py}=w2s(PL.x,PL.y);
-  const pyAdj = py - (2.0-1.8)*TILE; // décale pour que les pieds soient au bon endroit
-  drawCharacter(ctx,px,pyAdj,TILE,PL.dir,getSkin(myId),pName,PL.hp,20,isWalking);
+  drawCharacter(ctx,px,py,TILE,PL.dir,getSkin(myId),pName,PL.hp,20,isWalking);
 
   // Cursor highlight — use consistent center
   const wp=s2w(mouseX,mouseY);
