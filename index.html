@@ -494,20 +494,22 @@ function drawBlockToCanvas(ctx,id,s){
   const p=(x,y,w,h,color)=>{ctx.fillStyle=color;ctx.fillRect(Math.floor(x*s),Math.floor(y*s),Math.ceil(w*s),Math.ceil(h*s));};
   switch(id){
     case B.GRASS:
-      // Fond terre (bas 80%)
-      p(0,0.2,1,0.8,'#7a5230');
-      p(0.1,0.25,0.15,0.12,'#6b4520');p(0.4,0.35,0.12,0.1,'#6b4520');p(0.7,0.28,0.14,0.11,'#6b4520');
-      p(0.2,0.55,0.1,0.14,'#8a6040');p(0.55,0.65,0.15,0.12,'#8a6040');p(0.8,0.5,0.1,0.1,'#8a6040');
-      // Bande verte (haut 22%)
-      p(0,0,1,0.22,'#4db040');
-      // Brins d'herbe qui dépassent vers le haut
-      p(0.05,0,0.05,0.12,'#5dc050');p(0.18,0,0.04,0.1,'#65d060');
-      p(0.52,0.02,0.06,0.12,'#55b838');p(0.73,0,0.05,0.11,'#5dc050');
-      p(0.87,0.01,0.04,0.14,'#60c040');p(0.35,0,0.04,0.09,'#6ad058');
-      // Transition herbe→terre (lisière irrégulière)
-      p(0.08,0.2,0.08,0.06,'#5a7a3a');p(0.25,0.18,0.1,0.05,'#4db040');
-      p(0.45,0.2,0.07,0.06,'#5a7a3a');p(0.65,0.19,0.09,0.05,'#4db040');
-      p(0.82,0.2,0.08,0.06,'#5a7a3a');break;
+      // Fond : terre sur tout le bloc
+      p(0,0,1,1,'#7a5230');
+      // Taches de terre
+      p(0.1,0.15,0.15,0.12,'#6b4520');p(0.4,0.3,0.12,0.1,'#6b4520');p(0.7,0.2,0.14,0.11,'#6b4520');
+      p(0.2,0.55,0.1,0.14,'#8a6040');p(0.55,0.65,0.15,0.12,'#8a6040');p(0.8,0.45,0.1,0.1,'#8a6040');
+      p(0.05,0.75,0.12,0.1,'#6b4520');p(0.35,0.8,0.15,0.12,'#6b4520');p(0.7,0.75,0.12,0.1,'#6b4520');
+      // Bande verte uniquement en haut (≈15% du bloc)
+      p(0,0,1,0.15,'#4db040');
+      // Brins d'herbe courts qui dépassent vers le haut
+      p(0.06,0,0.04,0.1,'#5dc050');p(0.2,0,0.035,0.08,'#65d060');
+      p(0.38,0,0.04,0.09,'#6ad058');p(0.55,0,0.05,0.1,'#55b838');
+      p(0.72,0,0.04,0.08,'#5dc050');p(0.88,0,0.035,0.1,'#60c040');
+      // Lisière irrégulière herbe/terre
+      p(0.13,0.13,0.07,0.04,'#5a7a3a');p(0.29,0.12,0.08,0.04,'#4db040');
+      p(0.47,0.13,0.06,0.04,'#5a7a3a');p(0.63,0.12,0.08,0.04,'#4db040');
+      p(0.80,0.13,0.07,0.04,'#5a7a3a');break;
     case B.DIRT:
       p(0,0,1,1,'#7a5230');
       p(0.1,0.1,0.15,0.12,'#6b4520');p(0.4,0.25,0.12,0.1,'#6b4520');p(0.7,0.15,0.14,0.11,'#6b4520');
@@ -1292,7 +1294,9 @@ function render(){
       const b=getB(wx,wy);if(b===B.AIR)continue;
       const{x,y}=w2s(wx,wy);
       if(x<-TILE||x>W+TILE||y<-TILE||y>H+TILE)continue;
-      drawBlock(ctx,b,x,y,TILE,light);
+      // Pour GRASS : n'afficher le vert que si le bloc au-dessus est AIR (vraie surface)
+      const drawId = (b===B.GRASS && getB(wx,wy-1)!==B.AIR) ? B.DIRT : b;
+      drawBlock(ctx,drawId,x,y,TILE,light);
     }
   }
 
