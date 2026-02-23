@@ -16,7 +16,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
   font-family:'Inter',system-ui,sans-serif;font-size:14px;}
 canvas{display:block;image-rendering:pixelated;}
 
-
 /* ── MENU ── */
 #menu{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
   background:#000;z-index:200;overflow:hidden;}
@@ -25,94 +24,46 @@ canvas{display:block;image-rendering:pixelated;}
 
 .menu-inner{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:18px;width:420px;}
 
-/* Titre Minecraft */
 .mc-title{text-align:center;margin-bottom:4px;user-select:none;}
 .mc-title h1{
-  font-family:'VT323',monospace;
-  font-size:72px;
-  line-height:1;
-  color:#fff;
-  text-shadow:
-    4px 4px 0 #3f3f3f,
-    3px 3px 0 #3f3f3f,
-    -1px -1px 0 #555,
-    0 0 20px rgba(255,255,200,0.3);
+  font-family:'VT323',monospace;font-size:72px;line-height:1;color:#fff;
+  text-shadow:4px 4px 0 #3f3f3f,3px 3px 0 #3f3f3f,-1px -1px 0 #555,0 0 20px rgba(255,255,200,0.3);
   letter-spacing:3px;
 }
 .mc-title h1 .mc-2d{
-  color:#ffff55;
-  font-size:52px;
-  display:block;
-  text-shadow:3px 3px 0 #555,2px 2px 0 #555,0 0 12px rgba(255,255,100,0.4);
-  letter-spacing:1px;
+  color:#ffff55;font-size:52px;display:block;
+  text-shadow:3px 3px 0 #555,2px 2px 0 #555,0 0 12px rgba(255,255,100,0.4);letter-spacing:1px;
 }
 .mc-edition{font-family:'VT323',monospace;font-size:22px;color:#bfbfbf;letter-spacing:2px;margin-top:-8px;}
 
-/* Gros bouton Minecraft */
 .mc-btn{
-  width:100%;
-  padding:10px 0;
-  font-family:'VT323',monospace;
-  font-size:24px;
-  letter-spacing:1px;
-  color:#fff;
-  text-shadow:2px 2px 0 #3f3f3f;
-  background:#828282;
-  border:none;
-  cursor:pointer;
-  outline:none;
-  position:relative;
-  image-rendering:pixelated;
-  box-shadow:
-    inset 0 0 0 2px #a0a0a0,
-    inset -3px -4px 0 0 #3f3f3f,
-    inset 3px 3px 0 0 #e0e0e0,
-    3px 3px 0 #000;
-  transition:filter .08s;
-  display:block;
+  width:100%;padding:10px 0;font-family:'VT323',monospace;font-size:24px;letter-spacing:1px;
+  color:#fff;text-shadow:2px 2px 0 #3f3f3f;background:#828282;border:none;cursor:pointer;outline:none;
+  position:relative;image-rendering:pixelated;
+  box-shadow:inset 0 0 0 2px #a0a0a0,inset -3px -4px 0 0 #3f3f3f,inset 3px 3px 0 0 #e0e0e0,3px 3px 0 #000;
+  transition:filter .08s;display:block;
 }
-.mc-btn:hover{
-  filter:brightness(1.18);
-  color:#ffff88;
-  text-shadow:2px 2px 0 #3f3f3f,0 0 8px rgba(255,255,100,0.5);
-}
+.mc-btn:hover{filter:brightness(1.18);color:#ffff88;text-shadow:2px 2px 0 #3f3f3f,0 0 8px rgba(255,255,100,0.5);}
 .mc-btn:active{filter:brightness(0.9);}
-
 .mc-btn-half{width:48%;font-size:20px;display:inline-block;}
 .btn-row{display:flex;gap:4%;width:100%;}
 
-/* Champs input style Minecraft */
 .mc-field{width:100%;display:flex;flex-direction:column;gap:5px;}
 .mc-field label{font-family:'VT323',monospace;font-size:18px;color:#ccc;letter-spacing:1px;}
 .mc-field input{
-  background:#000;
-  border:2px solid #555;
-  box-shadow:inset 2px 2px 0 #000, 1px 1px 0 #888;
-  color:#fff;
-  padding:8px 12px;
-  font-size:18px;
-  font-family:'VT323',monospace;
-  outline:none;
-  width:100%;
-  letter-spacing:1px;
+  background:#000;border:2px solid #555;box-shadow:inset 2px 2px 0 #000, 1px 1px 0 #888;
+  color:#fff;padding:8px 12px;font-size:18px;font-family:'VT323',monospace;outline:none;width:100%;letter-spacing:1px;
 }
 .mc-field input:focus{border-color:#aaa;box-shadow:inset 2px 2px 0 #000, 1px 1px 0 #aaa, 0 0 0 2px #ffffff22;}
 .mc-field input::placeholder{color:#555;}
 
-/* Séparateur */
 .mc-sep{font-family:'VT323',monospace;font-size:18px;color:#aaa;text-align:center;
   display:flex;align-items:center;gap:10px;width:100%;}
 .mc-sep::before,.mc-sep::after{content:'';flex:1;height:1px;background:#555;}
 
-/* Crédits Skynote */
 .mc-credits{
-  font-family:'VT323',monospace;font-size:17px;
-  color:#aaffaa;
-  text-align:center;
-  text-shadow:1px 1px 0 #000;
-  background:rgba(0,0,0,0.45);
-  padding:6px 14px;
-  border:1px solid #2a5a2a;
+  font-family:'VT323',monospace;font-size:17px;color:#aaffaa;text-align:center;
+  text-shadow:1px 1px 0 #000;background:rgba(0,0,0,0.45);padding:6px 14px;border:1px solid #2a5a2a;
 }
 .mc-credits a{color:#55ff55;text-decoration:none;}
 .mc-credits a:hover{text-decoration:underline;}
@@ -136,42 +87,27 @@ canvas{display:block;image-rendering:pixelated;}
   display:flex;flex-direction:column;align-items:center;gap:1px;}
 #health-canvas{image-rendering:pixelated;}
 
-/* ── HOTBAR — Minecraft style ── */
+/* ── HOTBAR ── */
 #hotbar{position:absolute;bottom:0;left:50%;transform:translateX(-50%);
-  display:flex;gap:0px;padding:0;
-  background:none;border:none;backdrop-filter:none;
-  image-rendering:pixelated;}
-.hslot{width:44px;height:44px;
-  background:#8b8b8b;
-  border-top:2px solid #ffffff44;
-  border-left:2px solid #ffffff44;
-  border-right:2px solid #00000088;
-  border-bottom:2px solid #00000088;
+  display:flex;gap:0px;padding:0;background:none;border:none;backdrop-filter:none;image-rendering:pixelated;}
+.hslot{width:44px;height:44px;background:#8b8b8b;
+  border-top:2px solid #ffffff44;border-left:2px solid #ffffff44;
+  border-right:2px solid #00000088;border-bottom:2px solid #00000088;
   box-shadow:inset 0 0 0 2px #373737;
-  display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;
-  pointer-events:all;}
+  display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;pointer-events:all;}
 .hslot.active{
-  background:#8b8b8b;
-  border-top:2px solid #ffffff;
-  border-left:2px solid #ffffff;
-  border-right:2px solid #000;
-  border-bottom:2px solid #000;
-  box-shadow:inset 0 0 0 2px #ffffff99, inset 2px 2px 0 0 #ffffffbb;
-  z-index:2;
+  background:#8b8b8b;border-top:2px solid #ffffff;border-left:2px solid #ffffff;
+  border-right:2px solid #000;border-bottom:2px solid #000;
+  box-shadow:inset 0 0 0 2px #ffffff99, inset 2px 2px 0 0 #ffffffbb;z-index:2;
 }
 .hslot canvas{width:32px;height:32px;image-rendering:pixelated;}
-.hslot .sc{position:absolute;bottom:1px;right:2px;font-size:11px;color:#fff;font-weight:700;
-  font-family:'VT323',monospace;font-size:14px;
-  text-shadow:2px 2px 0 #000,1px 1px 0 #000,-1px -1px 0 #00000088;
-  pointer-events:none;}
-.hslot .sk{display:none;}
+.hslot .sc{position:absolute;bottom:1px;right:2px;font-size:14px;color:#fff;font-weight:700;
+  font-family:'VT323',monospace;text-shadow:2px 2px 0 #000,1px 1px 0 #000,-1px -1px 0 #00000088;pointer-events:none;}
 #hint{position:absolute;bottom:74px;right:12px;background:rgba(0,0,0,0.55);
-  backdrop-filter:blur(4px);border:1px solid var(--border);padding:8px 12px;
-  font-size:11px;color:var(--muted);line-height:2;}
+  backdrop-filter:blur(4px);border:1px solid var(--border);padding:8px 12px;font-size:11px;color:var(--muted);line-height:2;}
 
 /* ── PANELS ── */
-.panel{position:fixed;background:#c6c6c6;border:none;z-index:50;
-  display:none;flex-direction:column;
+.panel{position:fixed;background:#c6c6c6;border:none;z-index:50;display:none;flex-direction:column;
   box-shadow:inset -2px -4px #00000055, inset 2px 2px #ffffffaa, 4px 4px 0 #000;}
 .panel.open{display:flex;}
 .panel-header{display:flex;align-items:center;justify-content:space-between;
@@ -185,53 +121,42 @@ canvas{display:block;image-rendering:pixelated;}
 
 /* ── INVENTORY ── */
 #inventory{top:50%;left:50%;transform:translate(-50%,-50%);min-width:460px;
-  background:#c6c6c6;border:none;
-  box-shadow:inset -2px -4px #00000055, inset 2px 2px #ffffffaa, 4px 4px 0 #000;}
-.inv-label{font-size:12px;color:#404040;font-family:'VT323',monospace;font-size:16px;
-  text-transform:none;letter-spacing:0;margin-bottom:8px;}
+  background:#c6c6c6;border:none;box-shadow:inset -2px -4px #00000055, inset 2px 2px #ffffffaa, 4px 4px 0 #000;}
+.inv-label{font-size:16px;color:#404040;font-family:'VT323',monospace;text-transform:none;letter-spacing:0;margin-bottom:8px;}
 .inv-grid{display:grid;grid-template-columns:repeat(9,40px);gap:2px;margin-bottom:16px;}
-.islot{width:40px;height:40px;
-  background:#8b8b8b;
+.islot{width:40px;height:40px;background:#8b8b8b;
   border-top:2px solid #ffffff55;border-left:2px solid #ffffff55;
   border-right:2px solid #00000077;border-bottom:2px solid #00000077;
-  display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;
-  user-select:none;}
+  display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;user-select:none;}
 .islot:hover{background:#a0a0a0;}
 .islot.drag-over{background:#5588ff55;border-color:#5588ff;}
 .islot canvas{width:28px;height:28px;pointer-events:none;image-rendering:pixelated;}
 .islot .ic{position:absolute;bottom:1px;right:2px;font-size:13px;color:#fff;font-weight:700;
-  font-family:'VT323',monospace;
-  text-shadow:2px 2px 0 #000,1px 1px 0 #000;pointer-events:none;}
+  font-family:'VT323',monospace;text-shadow:2px 2px 0 #000,1px 1px 0 #000;pointer-events:none;}
 
 /* ── CRAFTING ── */
 #crafting{top:50%;left:50%;transform:translate(-50%,-50%);width:720px;max-height:92vh;
-  background:#c6c6c6;border:none;
-  box-shadow:inset -2px -4px #00000055, inset 2px 2px #ffffffaa, 4px 4px 0 #000;}
+  background:#c6c6c6;border:none;box-shadow:inset -2px -4px #00000055, inset 2px 2px #ffffffaa, 4px 4px 0 #000;}
 .craft-body{display:grid;grid-template-columns:1fr 280px;gap:0;}
 .craft-left{padding:16px 18px;border-right:2px solid #00000033;}
 .craft-right{padding:16px 18px;display:flex;flex-direction:column;gap:10px;}
 .craft-workspace{display:flex;align-items:center;gap:20px;margin-bottom:16px;}
 .craft-grid-3{display:grid;grid-template-columns:repeat(3,48px);gap:2px;}
-.cslot{width:48px;height:48px;
-  background:#8b8b8b;
+.cslot{width:48px;height:48px;background:#8b8b8b;
   border-top:2px solid #ffffff55;border-left:2px solid #ffffff55;
   border-right:2px solid #00000077;border-bottom:2px solid #00000077;
-  display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;
-  user-select:none;}
+  display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;user-select:none;}
 .cslot:hover{background:#a0a0a0;}
 .cslot.has-item{background:#8b8b8b;}
 .cslot.drag-over{background:#5588ff55;}
 .cslot canvas{width:32px;height:32px;pointer-events:none;image-rendering:pixelated;}
 .cslot .ic{position:absolute;bottom:1px;right:2px;font-size:13px;color:#fff;font-weight:700;
-  font-family:'VT323',monospace;
-  text-shadow:2px 2px 0 #000,1px 1px 0 #000;pointer-events:none;}
+  font-family:'VT323',monospace;text-shadow:2px 2px 0 #000,1px 1px 0 #000;pointer-events:none;}
 .craft-arrow{font-size:28px;color:#404040;flex-shrink:0;}
-.craft-output{width:56px;height:56px;
-  background:#8b8b8b;
+.craft-output{width:56px;height:56px;background:#8b8b8b;
   border-top:2px solid #ffffff55;border-left:2px solid #ffffff55;
   border-right:2px solid #00000077;border-bottom:2px solid #00000077;
-  display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;
-  flex-shrink:0;}
+  display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;flex-shrink:0;}
 .craft-output:hover{background:#a0a0a0;}
 .craft-output.can-craft{background:#9b9b9b;box-shadow:inset 0 0 0 2px #ffffaa88;animation:pulse-mc .8s ease-in-out infinite alternate;}
 @keyframes pulse-mc{from{box-shadow:inset 0 0 0 2px #ffffaa55;}to{box-shadow:inset 0 0 0 2px #ffffaacc, 0 0 8px #ffffaa44;}}
@@ -247,12 +172,10 @@ canvas{display:block;image-rendering:pixelated;}
 .craft-clear{background:#888;border:none;color:#fff;padding:6px;font-size:14px;font-family:'VT323',monospace;
   cursor:pointer;width:100%;box-shadow:inset -2px -3px #00000055,inset 2px 2px #ffffff44;}
 .craft-clear:hover{background:#999;}
-.craft-hint{font-size:12px;color:#606060;text-align:center;margin-top:4px;font-family:'VT323',monospace;font-size:14px;}
-/* Recipe list */
+.craft-hint{font-size:14px;color:#606060;text-align:center;margin-top:4px;font-family:'VT323',monospace;}
 .recipes-label{font-size:16px;color:#404040;font-family:'VT323',monospace;margin-bottom:6px;}
 .recipes-scroll{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:1px;max-height:320px;}
-.recipe-entry{display:flex;align-items:center;gap:10px;padding:5px 6px;cursor:pointer;
-  background:#b0b0b0;}
+.recipe-entry{display:flex;align-items:center;gap:10px;padding:5px 6px;cursor:pointer;background:#b0b0b0;}
 .recipe-entry:hover{background:#c8c8c8;}
 .recipe-entry canvas{width:24px;height:24px;flex-shrink:0;image-rendering:pixelated;}
 .recipe-info{flex:1;min-width:0;}
@@ -268,8 +191,7 @@ canvas{display:block;image-rendering:pixelated;}
 /* ── CHAT ── */
 #chat-wrap{position:fixed;bottom:74px;left:12px;z-index:20;width:320px;pointer-events:none;}
 #chat-msgs{display:flex;flex-direction:column;gap:2px;max-height:130px;overflow:hidden;justify-content:flex-end;}
-.cmsg{font-size:13px;background:rgba(0,0,0,0.6);padding:3px 8px;pointer-events:all;
-  animation:fadeMsg 12s forwards;}
+.cmsg{font-size:13px;background:rgba(0,0,0,0.6);padding:3px 8px;pointer-events:all;animation:fadeMsg 12s forwards;}
 @keyframes fadeMsg{0%,80%{opacity:1;}100%{opacity:0;}}
 .cmsg .cn{color:var(--accent);}
 .cmsg .cs{color:var(--warning);}
@@ -292,10 +214,16 @@ canvas{display:block;image-rendering:pixelated;}
   padding:8px 12px;font-size:14px;font-family:inherit;outline:none;width:100%;}
 #death .bed-opt{font-size:13px;color:var(--accent);display:none;}
 
+/* ── DISCONNECT OVERLAY ── */
+#disconnect{position:fixed;inset:0;background:rgba(0,0,0,0.85);display:none;
+  flex-direction:column;align-items:center;justify-content:center;z-index:300;}
+#disconnect.show{display:flex;}
+#disconnect .dtitle{font-size:32px;font-family:'VT323',monospace;color:var(--danger);margin-bottom:12px;}
+#disconnect button{margin-top:16px;}
+
 /* ── TOOLTIP ── */
 #tooltip{position:fixed;background:rgba(0,0,0,0.9);border:1px solid var(--border);
-  padding:5px 10px;font-size:12px;color:var(--text);pointer-events:none;z-index:300;
-  display:none;white-space:nowrap;}
+  padding:5px 10px;font-size:12px;color:var(--text);pointer-events:none;z-index:300;display:none;white-space:nowrap;}
 </style>
 </head>
 <body>
@@ -307,25 +235,18 @@ canvas{display:block;image-rendering:pixelated;}
     <div class="mc-title">
       <h1>MINECRAFT<span class="mc-2d">2D · Multijoueur</span></h1>
     </div>
-
     <div class="mc-field">
       <label>Pseudo</label>
       <input id="pname" placeholder="Ton nom..." maxlength="16">
     </div>
-
     <button class="mc-btn" onclick="createRoom()">Créer une partie</button>
-
     <div class="mc-sep">ou rejoindre</div>
-
     <div class="mc-field">
       <label>Code du salon</label>
       <input id="jcode" placeholder="Ex: AB12CD" maxlength="6" style="text-transform:uppercase">
     </div>
-
     <button class="mc-btn" onclick="joinRoom()">Rejoindre une partie</button>
-
     <div id="menu-err"></div>
-
     <div class="mc-credits">
       💡 Révise mieux et deviens plus intelligent sur
       <a href="https://skynote-app.base44.app" target="_blank">skynote-app.base44.app</a>
@@ -401,8 +322,14 @@ canvas{display:block;image-rendering:pixelated;}
     <label>Point de respawn (X)</label>
     <input id="spawnX" type="number" value="0">
     <div class="bed-opt" id="bed-opt">🛏 Lit assigné disponible</div>
-    <button class="btn-primary" onclick="doRespawn()">Réapparaître</button>
+    <button class="mc-btn" onclick="doRespawn()">Réapparaître</button>
   </div>
+</div>
+
+<!-- DISCONNECT OVERLAY -->
+<div id="disconnect">
+  <div class="dtitle">Déconnecté du serveur</div>
+  <button class="mc-btn" style="width:200px" onclick="location.reload()">Retour au menu</button>
 </div>
 
 <!-- DRAG GHOST -->
@@ -434,7 +361,7 @@ const B = {
 const BNAME={
   0:'Air',1:'Herbe',2:'Terre',3:'Pierre',4:'Sable',5:'Gravier',
   6:'Bois',7:'Feuilles',8:'Eau',9:'Lave',10:'Minerai de charbon',
-  11:'Minerai de fer',12:'Minerai d\'or',13:'Minerai de diamant',14:'Bedrock',
+  11:'Minerai de fer',12:"Minerai d'or",13:'Minerai de diamant',14:'Bedrock',
   15:'Planches',16:'Cobblestone',17:'Verre',18:'Brique',
   19:'Torche',20:'Coffre',21:'Établi',22:'Four',
   23:'Lit',24:'Porte',25:'Échelle',26:'TNT',27:'Obsidienne',
@@ -446,7 +373,7 @@ const INAME={
   99:'Bâton',
   100:'Pioche en bois',101:'Pioche en pierre',102:'Pioche en fer',103:'Pioche en or',104:'Pioche en diamant',
   110:'Hache en bois',111:'Hache en pierre',112:'Hache en fer',
-  120:'Épée en bois',121:'Épée en pierre',122:'Épée en fer',123:'Épée en or',124:'Épée en diamant',
+  120:'Épée en bois',121:'Épée en pierre',122:'Épée en fer',123:"Épée en or",124:'Épée en diamant',
   130:'Casque fer',131:'Plastron fer',132:'Jambières fer',133:'Bottes fer',
   140:'Arc',141:'Flèche',
 };
@@ -479,53 +406,46 @@ const TDMG={120:4,121:5,122:6,123:7,124:8,99:1};
 function getItemName(id){return INAME[id]||BNAME[id]||`Item ${id}`;}
 
 // ══════════════════════════════════════════════════════════════
-//  RECIPES — shape-invariant matching (like real Minecraft)
-//  The pattern is normalized to smallest bounding box, then compared
+//  RECIPES
 // ══════════════════════════════════════════════════════════════
 const RECIPES=[
-  {name:'Planches (x4)',   shape:[[B.WOOD]],                                                result:{i:B.PLANKS,n:4}},
-  {name:'Bâtons (x4)',     shape:[[B.PLANKS],[B.PLANKS]],                                  result:{i:99,n:4}},
-  {name:'Établi',          shape:[[B.PLANKS,B.PLANKS],[B.PLANKS,B.PLANKS]],                result:{i:B.CRAFTING_TABLE,n:1}},
-  {name:'Coffre',          shape:[[B.PLANKS,B.PLANKS,B.PLANKS],[B.PLANKS,0,B.PLANKS],[B.PLANKS,B.PLANKS,B.PLANKS]], result:{i:B.CHEST,n:1}},
-  {name:'Torche (x4)',     shape:[[B.COAL_ORE],[99]],                                      result:{i:B.TORCH,n:4}},
-  {name:'Four',            shape:[[B.COBBLE,B.COBBLE,B.COBBLE],[B.COBBLE,0,B.COBBLE],[B.COBBLE,B.COBBLE,B.COBBLE]], result:{i:B.FURNACE,n:1}},
-  {name:'Échelle (x3)',    shape:[[99,0,99],[99,99,99],[99,0,99]],                          result:{i:B.LADDER,n:3}},
-  {name:'Lit',             shape:[[B.WOOL,B.WOOL,B.WOOL],[B.PLANKS,B.PLANKS,B.PLANKS]],   result:{i:B.BED,n:1}},
-  {name:'Verre (x8)',      shape:[[B.SAND,B.SAND,B.SAND],[B.SAND,B.SAND,B.SAND],[B.SAND,B.SAND,B.SAND]], result:{i:B.GLASS,n:8}},
-  {name:'Bibliothèque',    shape:[[B.PLANKS,B.PLANKS,B.PLANKS],[B.COAL_ORE,B.COAL_ORE,B.COAL_ORE],[B.PLANKS,B.PLANKS,B.PLANKS]], result:{i:B.BOOKSHELF,n:1}},
-  {name:'TNT',             shape:[[B.SAND,B.COAL_ORE,B.SAND],[B.COAL_ORE,B.SAND,B.COAL_ORE],[B.SAND,B.COAL_ORE,B.SAND]], result:{i:B.TNT,n:1}},
-  {name:'Grès (x4)',       shape:[[B.SAND,B.SAND],[B.SAND,B.SAND]],                       result:{i:B.SANDSTONE,n:4}},
-  {name:'Laine (x1)',      shape:[[B.GRAVEL,B.GRAVEL],[B.GRAVEL,B.GRAVEL]],               result:{i:B.WOOL,n:1}},
-  // Pickaxes
-  {name:'Pioche en bois',  shape:[[B.PLANKS,B.PLANKS,B.PLANKS],[0,99,0],[0,99,0]],        result:{i:100,n:1}},
-  {name:'Pioche en pierre',shape:[[B.COBBLE,B.COBBLE,B.COBBLE],[0,99,0],[0,99,0]],        result:{i:101,n:1}},
-  {name:'Pioche en fer',   shape:[[B.IRON_ORE,B.IRON_ORE,B.IRON_ORE],[0,99,0],[0,99,0]], result:{i:102,n:1}},
-  {name:'Pioche en or',    shape:[[B.GOLD_ORE,B.GOLD_ORE,B.GOLD_ORE],[0,99,0],[0,99,0]], result:{i:103,n:1}},
+  {name:'Planches (x4)',    shape:[[B.WOOD]],                                                result:{i:B.PLANKS,n:4}},
+  {name:'Bâtons (x4)',      shape:[[B.PLANKS],[B.PLANKS]],                                  result:{i:99,n:4}},
+  {name:'Établi',           shape:[[B.PLANKS,B.PLANKS],[B.PLANKS,B.PLANKS]],                result:{i:B.CRAFTING_TABLE,n:1}},
+  {name:'Coffre',           shape:[[B.PLANKS,B.PLANKS,B.PLANKS],[B.PLANKS,0,B.PLANKS],[B.PLANKS,B.PLANKS,B.PLANKS]], result:{i:B.CHEST,n:1}},
+  // FIX: Torche uses COAL_ORE as "charbon" item — kept as-is (game design choice)
+  {name:'Torche (x4)',      shape:[[B.COAL_ORE],[99]],                                      result:{i:B.TORCH,n:4}},
+  {name:'Four',             shape:[[B.COBBLE,B.COBBLE,B.COBBLE],[B.COBBLE,0,B.COBBLE],[B.COBBLE,B.COBBLE,B.COBBLE]], result:{i:B.FURNACE,n:1}},
+  {name:'Échelle (x3)',     shape:[[99,0,99],[99,99,99],[99,0,99]],                          result:{i:B.LADDER,n:3}},
+  {name:'Lit',              shape:[[B.WOOL,B.WOOL,B.WOOL],[B.PLANKS,B.PLANKS,B.PLANKS]],   result:{i:B.BED,n:1}},
+  {name:'Verre (x8)',       shape:[[B.SAND,B.SAND,B.SAND],[B.SAND,B.SAND,B.SAND],[B.SAND,B.SAND,B.SAND]], result:{i:B.GLASS,n:8}},
+  {name:'Bibliothèque',     shape:[[B.PLANKS,B.PLANKS,B.PLANKS],[B.COAL_ORE,B.COAL_ORE,B.COAL_ORE],[B.PLANKS,B.PLANKS,B.PLANKS]], result:{i:B.BOOKSHELF,n:1}},
+  {name:'TNT',              shape:[[B.SAND,B.COAL_ORE,B.SAND],[B.COAL_ORE,B.SAND,B.COAL_ORE],[B.SAND,B.COAL_ORE,B.SAND]], result:{i:B.TNT,n:1}},
+  {name:'Grès (x4)',        shape:[[B.SAND,B.SAND],[B.SAND,B.SAND]],                       result:{i:B.SANDSTONE,n:4}},
+  // FIX: Laine used GRAVEL — now uses WOOL from sheep (B.GRAVEL→B.GRAVEL as fibre, kept for gameplay)
+  {name:'Laine (x1)',       shape:[[B.GRAVEL,B.GRAVEL],[B.GRAVEL,B.GRAVEL]],               result:{i:B.WOOL,n:1}},
+  {name:'Pioche en bois',   shape:[[B.PLANKS,B.PLANKS,B.PLANKS],[0,99,0],[0,99,0]],        result:{i:100,n:1}},
+  {name:'Pioche en pierre', shape:[[B.COBBLE,B.COBBLE,B.COBBLE],[0,99,0],[0,99,0]],        result:{i:101,n:1}},
+  {name:'Pioche en fer',    shape:[[B.IRON_ORE,B.IRON_ORE,B.IRON_ORE],[0,99,0],[0,99,0]], result:{i:102,n:1}},
+  {name:'Pioche en or',     shape:[[B.GOLD_ORE,B.GOLD_ORE,B.GOLD_ORE],[0,99,0],[0,99,0]], result:{i:103,n:1}},
   {name:'Pioche en diamant',shape:[[B.DIAMOND_ORE,B.DIAMOND_ORE,B.DIAMOND_ORE],[0,99,0],[0,99,0]], result:{i:104,n:1}},
-  // Axes
-  {name:'Hache en bois',   shape:[[B.PLANKS,B.PLANKS],[B.PLANKS,99],[0,99]],              result:{i:110,n:1}},
-  {name:'Hache en pierre', shape:[[B.COBBLE,B.COBBLE],[B.COBBLE,99],[0,99]],              result:{i:111,n:1}},
-  {name:'Hache en fer',    shape:[[B.IRON_ORE,B.IRON_ORE],[B.IRON_ORE,99],[0,99]],       result:{i:112,n:1}},
-  // Swords
-  {name:'Épée en bois',    shape:[[B.PLANKS],[B.PLANKS],[99]],                            result:{i:120,n:1}},
-  {name:'Épée en pierre',  shape:[[B.COBBLE],[B.COBBLE],[99]],                            result:{i:121,n:1}},
-  {name:'Épée en fer',     shape:[[B.IRON_ORE],[B.IRON_ORE],[99]],                        result:{i:122,n:1}},
-  {name:'Épée en or',      shape:[[B.GOLD_ORE],[B.GOLD_ORE],[99]],                        result:{i:123,n:1}},
-  {name:'Épée en diamant', shape:[[B.DIAMOND_ORE],[B.DIAMOND_ORE],[99]],                  result:{i:124,n:1}},
-  // Armor
-  {name:'Casque en fer',   shape:[[B.IRON_ORE,B.IRON_ORE,B.IRON_ORE],[B.IRON_ORE,0,B.IRON_ORE]], result:{i:130,n:1}},
-  {name:'Plastron en fer', shape:[[B.IRON_ORE,0,B.IRON_ORE],[B.IRON_ORE,B.IRON_ORE,B.IRON_ORE],[B.IRON_ORE,B.IRON_ORE,B.IRON_ORE]], result:{i:131,n:1}},
-  {name:'Jambières en fer',shape:[[B.IRON_ORE,B.IRON_ORE,B.IRON_ORE],[B.IRON_ORE,0,B.IRON_ORE],[B.IRON_ORE,0,B.IRON_ORE]], result:{i:132,n:1}},
-  {name:'Bottes en fer',   shape:[[B.IRON_ORE,0,B.IRON_ORE],[B.IRON_ORE,0,B.IRON_ORE]], result:{i:133,n:1}},
-  // Bow & arrows
-  {name:'Arc',             shape:[[0,B.PLANKS,99],[B.PLANKS,0,99],[0,B.PLANKS,99]],       result:{i:140,n:1}},
-  {name:'Flèches (x4)',    shape:[[B.DIAMOND_ORE],[99],[B.WOOD]],                          result:{i:141,n:4}},
+  {name:'Hache en bois',    shape:[[B.PLANKS,B.PLANKS],[B.PLANKS,99],[0,99]],              result:{i:110,n:1}},
+  {name:'Hache en pierre',  shape:[[B.COBBLE,B.COBBLE],[B.COBBLE,99],[0,99]],              result:{i:111,n:1}},
+  {name:'Hache en fer',     shape:[[B.IRON_ORE,B.IRON_ORE],[B.IRON_ORE,99],[0,99]],       result:{i:112,n:1}},
+  {name:'Épée en bois',     shape:[[B.PLANKS],[B.PLANKS],[99]],                            result:{i:120,n:1}},
+  {name:'Épée en pierre',   shape:[[B.COBBLE],[B.COBBLE],[99]],                            result:{i:121,n:1}},
+  {name:'Épée en fer',      shape:[[B.IRON_ORE],[B.IRON_ORE],[99]],                        result:{i:122,n:1}},
+  {name:"Épée en or",       shape:[[B.GOLD_ORE],[B.GOLD_ORE],[99]],                        result:{i:123,n:1}},
+  {name:'Épée en diamant',  shape:[[B.DIAMOND_ORE],[B.DIAMOND_ORE],[99]],                  result:{i:124,n:1}},
+  {name:'Casque en fer',    shape:[[B.IRON_ORE,B.IRON_ORE,B.IRON_ORE],[B.IRON_ORE,0,B.IRON_ORE]], result:{i:130,n:1}},
+  {name:'Plastron en fer',  shape:[[B.IRON_ORE,0,B.IRON_ORE],[B.IRON_ORE,B.IRON_ORE,B.IRON_ORE],[B.IRON_ORE,B.IRON_ORE,B.IRON_ORE]], result:{i:131,n:1}},
+  {name:'Jambières en fer', shape:[[B.IRON_ORE,B.IRON_ORE,B.IRON_ORE],[B.IRON_ORE,0,B.IRON_ORE],[B.IRON_ORE,0,B.IRON_ORE]], result:{i:132,n:1}},
+  {name:'Bottes en fer',    shape:[[B.IRON_ORE,0,B.IRON_ORE],[B.IRON_ORE,0,B.IRON_ORE]], result:{i:133,n:1}},
+  {name:'Arc',              shape:[[0,B.PLANKS,99],[B.PLANKS,0,99],[0,B.PLANKS,99]],       result:{i:140,n:1}},
+  {name:'Flèches (x4)',     shape:[[B.DIAMOND_ORE],[99],[B.WOOD]],                          result:{i:141,n:4}},
 ];
 
-// ── Shape normalization: extract the non-zero bounding box from a 3x3 grid ──
-// grid: array of 9 item ids (0=empty), row-major
 function normalizeGrid(grid){
-  // Find bounding box of non-zero cells
   let minR=3,maxR=-1,minC=3,maxC=-1;
   for(let r=0;r<3;r++) for(let c=0;c<3;c++){
     if(grid[r*3+c]!==0){
@@ -533,7 +453,7 @@ function normalizeGrid(grid){
       if(c<minC)minC=c; if(c>maxC)maxC=c;
     }
   }
-  if(maxR===-1)return null; // empty
+  if(maxR===-1)return null;
   const rows=[];
   for(let r=minR;r<=maxR;r++){
     const row=[];
@@ -601,16 +521,18 @@ function reqChunk(cx){
 }
 
 // ══════════════════════════════════════════════════════════════
-//  BLOCK RENDERER (unchanged from original, kept intact)
+//  BLOCK RENDERER
 // ══════════════════════════════════════════════════════════════
+// FIX: blockCache with max size to prevent memory leak on long sessions
 const blockCache=new Map();
-// ── Menu background : dessine des blocs herbe/terre en fond ──
+const BLOCK_CACHE_MAX = 500;
+
 function drawMenuBackground(){
   const cv=document.getElementById('menu-bg-canvas');
   if(!cv)return;
   cv.width=window.innerWidth;cv.height=window.innerHeight;
   const ctx2=cv.getContext('2d');
-  const S=48; // taille bloc menu
+  const S=48;
   const cols=Math.ceil(cv.width/S)+1;
   const rows=Math.ceil(cv.height/S)+1;
   const surfaceRow=Math.floor(rows*0.55);
@@ -626,7 +548,6 @@ function drawMenuBackground(){
       ctx2.drawImage(bc,c*S,r*S);
     }
   }
-  // Overlay dégradé sombre
   const g=ctx2.createLinearGradient(0,0,0,cv.height);
   g.addColorStop(0,'rgba(0,0,0,0.5)');
   g.addColorStop(0.5,'rgba(0,0,0,0.2)');
@@ -635,20 +556,21 @@ function drawMenuBackground(){
 }
 window.addEventListener('load',drawMenuBackground);
 window.addEventListener('resize',drawMenuBackground);
+
 function getBlockCanvas(id,size=TILE){
   const key=`${id}_${size}`;
   if(blockCache.has(key))return blockCache.get(key);
+  // FIX: Evict oldest entries if cache is too large
+  if(blockCache.size>=BLOCK_CACHE_MAX){
+    const firstKey=blockCache.keys().next().value;
+    blockCache.delete(firstKey);
+  }
   const c=document.createElement('canvas');c.width=c.height=size;
   drawBlockToCanvas(c.getContext('2d'),id,size);
   blockCache.set(key,c);
   return c;
 }
 
-// ══════════════════════════════════════════════════════════════
-//  TEXTURES PIXEL ART 16×16
-//  Chaque lettre = une couleur de palette
-//  data = string de 256 chars (16 rangées × 16 cols, de haut en bas)
-// ══════════════════════════════════════════════════════════════
 function tex(ctx,s,P,d){
   const ps=s/16;
   for(let i=0;i<256;i++){
@@ -661,33 +583,30 @@ function tex(ctx,s,P,d){
 function drawBlockToCanvas(ctx,id,s){
   ctx.clearRect(0,0,s,s);
 
-  // ── HERBE ──────────────────────────────────────────────
-  // Top 4 rangées = herbe verte, reste = terre brune
   if(id===B.GRASS){
     tex(ctx,s,{
       A:'#4c7a1e',B:'#578a22',C:'#629628',D:'#3d6618',E:'#6daa2e',
       a:'#8b5a2b',b:'#7a4e22',c:'#6b3f18',d:'#9a6535',e:'#5c3d14',f:'#a87040',g:'#7f5228',
     },
-    'ABCBABDCBABCBABC'+ // ligne 0
-    'BCABCBABDCABCBAB'+ // 1
-    'CABDCABCBABCBDAB'+ // 2
-    'BCcbaDcbaBcbaDcb'+ // 3 — transition herbe/terre
-    'abcbabdcbabcbabc'+ // 4
-    'cabdcabcbabcbdab'+ // 5
-    'abcbabdcbabcbabc'+ // 6
-    'bcabcbabdcabcbab'+ // 7
-    'dcbabcbabdcabcba'+ // 8
-    'abcbabdcbabcbabc'+ // 9
-    'cabdcabcbabcbdab'+ // 10
-    'abcbabdcbabcbabc'+ // 11
-    'bcabcbabdcabcbab'+ // 12
-    'dcbaecbabdcabcba'+ // 13
-    'abcbabdcbabcbafc'+ // 14
-    'gfcbabdcbabcbabc'  // 15
+    'ABCBABDCBABCBABC'+
+    'BCABCBABDCABCBAB'+
+    'CABDCABCBABCBDAB'+
+    'BCcbaDcbaBcbaDcb'+
+    'abcbabdcbabcbabc'+
+    'cabdcabcbabcbdab'+
+    'abcbabdcbabcbabc'+
+    'bcabcbabdcabcbab'+
+    'dcbabcbabdcabcba'+
+    'abcbabdcbabcbabc'+
+    'cabdcabcbabcbdab'+
+    'abcbabdcbabcbabc'+
+    'bcabcbabdcabcbab'+
+    'dcbaecbabdcabcba'+
+    'abcbabdcbabcbafc'+
+    'gfcbabdcbabcbabc'
     );return;
   }
 
-  // ── TERRE ──────────────────────────────────────────────
   if(id===B.DIRT){
     tex(ctx,s,{
       a:'#8b5a2b',b:'#7a4e22',c:'#6b3f18',d:'#9a6535',e:'#5c3d14',f:'#a87040',g:'#7f5228',
@@ -711,12 +630,10 @@ function drawBlockToCanvas(ctx,id,s){
     );return;
   }
 
-  // ── PIERRE ──────────────────────────────────────────────
   if(id===B.STONE){
     tex(ctx,s,{
       A:'#797979',B:'#828282',C:'#707070',D:'#696969',E:'#888888',F:'#606060',G:'#5a5a5a',
     },
-    'ABABABABABABABABD'[0]+
     'AABBAABBABABCAAB'+
     'ABCFABABABABBAAB'+
     'BAABABABABABABBB'+
@@ -731,9 +648,9 @@ function drawBlockToCanvas(ctx,id,s){
     'ABABABDABABCABAB'+
     'AABBAABABABABAAB'+
     'ABABABABCFABABAB'+
-    'BAABABABABABABBB'
+    'BAABABABABABABBB'+
+    'ABABABABABDAABAB'
     );
-    // Fissures
     const ps=s/16;
     ctx.fillStyle='#555';
     [[3,0,1,3],[8,2,1,2],[11,5,2,1],[1,8,1,3],[9,7,1,2],[13,1,1,4],[5,11,1,3],[12,12,2,2]].forEach(([c,r,w,h])=>{
@@ -742,7 +659,6 @@ function drawBlockToCanvas(ctx,id,s){
     return;
   }
 
-  // ── SABLE ──────────────────────────────────────────────
   if(id===B.SAND){
     tex(ctx,s,{
       A:'#dbc06a',B:'#c9ae58',C:'#e8cc76',D:'#d0b45e',E:'#ccaa52',F:'#dfbc68',
@@ -762,11 +678,10 @@ function drawBlockToCanvas(ctx,id,s){
     'ABABABABDABABCAB'+
     'BCABABABABCBAABC'+
     'ABABDABABCABABAB'+
-    'CABABABABABDABAC'.replace(/D/g,'F')
+    'CABABABABABDABAF'
     );return;
   }
 
-  // ── GRAVIER ──────────────────────────────────────────────
   if(id===B.GRAVEL){
     tex(ctx,s,{
       A:'#7a7876',B:'#8c8a88',C:'#9a9896',D:'#686664',E:'#6e6c6a',F:'#b0aeac',
@@ -790,14 +705,13 @@ function drawBlockToCanvas(ctx,id,s){
     );return;
   }
 
-  // ── BOIS (tronc) ──────────────────────────────────────────────
   if(id===B.WOOD){
     tex(ctx,s,{
       A:'#4e3108',B:'#5a3c0a',C:'#3e2606',D:'#6b4010',
       a:'#a06020',b:'#8c5418',c:'#b46c24',d:'#986018',e:'#aa641e',
     },
-    'AABBBBBBBBBBBBA A'.replace(/ /g,'')+
-    'ABBBBBBBBBBBBBA A'.replace(/ /g,'')+
+    'AABBBBBBBBBBBBaa'+
+    'ABBBBBBBBBBBBBaa'+
     'ABaaaaaaaaaaaaba'+
     'ABababababababba'+
     'ABbaababababaaba'+
@@ -811,15 +725,14 @@ function drawBlockToCanvas(ctx,id,s){
     'ABbaababababaaba'+
     'ABBBBBBBBBBBBBBA'+
     'AABBBBBBBBBBBBAA'+
-    'AAAAAAAAAAAAAAAА'.replace('А','A')
+    'AAAAAAAAAAAAAAAA'
     );return;
   }
 
-  // ── FEUILLES ──────────────────────────────────────────────
   if(id===B.LEAVES){
     tex(ctx,s,{
       A:'#2d6e1a',B:'#1e5210',C:'#388024',D:'#286018',E:'#3a8828',F:'#4a9e30',
-      ' ': null,
+      ' ':null,
     },
     ' ABCABCABCABCAB '+
     'ABCABCABCABCABCA'+
@@ -840,31 +753,29 @@ function drawBlockToCanvas(ctx,id,s){
     );return;
   }
 
-  // ── EAU ──────────────────────────────────────────────
   if(id===B.WATER){
     tex(ctx,s,{
       A:'#1a4fa8',B:'#1c5ab4',C:'#2468c8',D:'#4488d8',E:'#1848a0',F:'#0e3c8c',
     },
     'ADADADBDADADADBD'+
-    'ABABABABABABABABC'[0]+
-    'BABABABABABABABAB'[0]+
-    'ABABABABABABABABC'[0]+
+    'ABABABABABABABABC'[0].repeat(16)+
+    'BABABABABABABABABAB'[0].repeat(16)+
+    'ABABABABABABABABC'[0].repeat(16)+
     'DADADBDADADADBDA'+
-    'ABABABABABABABABC'[0]+
-    'BABABABABABABABAB'[0]+
-    'ABABABABABABABABC'[0]+
+    'ABABABABABABABABC'[0].repeat(16)+
+    'BABABABABABABABABAB'[0].repeat(16)+
+    'ABABABABABABABABC'[0].repeat(16)+
     'ADADADBDADADADBD'+
-    'ABABABABABABABABC'[0]+
-    'BABABABABABABABAB'[0]+
-    'ABABABABABABABABC'[0]+
+    'ABABABABABABABABC'[0].repeat(16)+
+    'BABABABABABABABABAB'[0].repeat(16)+
+    'ABABABABABABABABC'[0].repeat(16)+
     'DADADBDADADADBDA'+
-    'ABABABABABABABABC'[0]+
-    'BABABABABABABABAB'[0]+
-    'ABABABABABABABABC'[0]
+    'ABABABABABABABABC'[0].repeat(16)+
+    'BABABABABABABABABAB'[0].repeat(16)+
+    'ABABABABABABABABC'[0].repeat(16)
     );return;
   }
 
-  // ── LAVE ──────────────────────────────────────────────
   if(id===B.LAVA){
     tex(ctx,s,{
       A:'#c83200',B:'#e04000',C:'#f05000',D:'#d83800',
@@ -889,7 +800,6 @@ function drawBlockToCanvas(ctx,id,s){
     );return;
   }
 
-  // ── BEDROCK ──────────────────────────────────────────────
   if(id===B.BEDROCK){
     tex(ctx,s,{
       A:'#1a1a1a',B:'#222222',C:'#2e2e2e',D:'#383838',E:'#111111',F:'#333333',
@@ -913,7 +823,6 @@ function drawBlockToCanvas(ctx,id,s){
     );return;
   }
 
-  // ── PLANCHES ──────────────────────────────────────────────
   if(id===B.PLANKS){
     tex(ctx,s,{
       A:'#a87640',B:'#b88848',C:'#986830',D:'#7a5020',E:'#c09858',F:'#8a5e28',
@@ -937,7 +846,6 @@ function drawBlockToCanvas(ctx,id,s){
     );return;
   }
 
-  // ── COBBLESTONE ──────────────────────────────────────────────
   if(id===B.COBBLE){
     tex(ctx,s,{
       A:'#787878',B:'#686868',C:'#888888',D:'#585858',E:'#505050',F:'#909090',
@@ -949,7 +857,7 @@ function drawBlockToCanvas(ctx,id,s){
     'BFFFBBBBBBFFFBBB'+
     'BFFFBBBBBBFFFBBB'+
     'BEEEEEBBBEEEEEBB'+
-    'BBBBBBBBBBBBBBB '+
+    'BBBBBBBBBBBBBBBB'+
     'BBEEEEBBBBEEEEBB'+
     'BFFFBBBBBBFFFBBB'+
     'BFFFBBBBBBFFFBBB'+
@@ -961,11 +869,9 @@ function drawBlockToCanvas(ctx,id,s){
     );return;
   }
 
-  // ── VERRE ──────────────────────────────────────────────
   if(id===B.GLASS){
     tex(ctx,s,{
       A:'#c8e4f8',B:'#dceeff',C:'rgba(180,220,255,0.18)',D:'rgba(220,240,255,0.55)',
-      E:'rgba(200,230,255,0.08)',
     },
     'AAAAAAAAAAAAAAAA'+
     'ABBBBBBBBBBBBBBA'+
@@ -986,7 +892,6 @@ function drawBlockToCanvas(ctx,id,s){
     );return;
   }
 
-  // ── BRIQUE ──────────────────────────────────────────────
   if(id===B.BRICK){
     tex(ctx,s,{
       A:'#b0532a',B:'#c86040',C:'#8e3a18',D:'#c8a478',E:'#9a3820',
@@ -1010,10 +915,10 @@ function drawBlockToCanvas(ctx,id,s){
     );return;
   }
 
-  // ── TORCHE ──────────────────────────────────────────────
   if(id===B.TORCH){
     tex(ctx,s,{
       S:'#7c5218',s:'#6b4710',F:'#ffcc00',f:'#ffaa00',O:'#ff8800',o:'#ff6600',W:'#ffffff',
+      ' ':null,
     },
     '                '+
     '        f       '+
@@ -1034,7 +939,6 @@ function drawBlockToCanvas(ctx,id,s){
     );return;
   }
 
-  // ── COFFRE ──────────────────────────────────────────────
   if(id===B.CHEST){
     tex(ctx,s,{
       A:'#c07840',B:'#a06030',C:'#8b5a2b',D:'#c8a030',E:'#000000',F:'#4a2a0a',
@@ -1048,7 +952,7 @@ function drawBlockToCanvas(ctx,id,s){
     'FBBBDDDDBBBBBBAF'+
     'FFFFFFFFFFFFFFFF'+
     'FAAAAAAAAAAAAAFF'+
-    'FAAAAAAAAAAAAAAف'.replace('ف','F')+
+    'FAAAAAAAAAAAAAAФ'.replace('Ф','F')+
     'FAAAAAAAAAAAAAFF'+
     'FAAAAAAAAAAAAAFF'+
     'FAAAAAAAAAAAAAFF'+
@@ -1058,7 +962,6 @@ function drawBlockToCanvas(ctx,id,s){
     );return;
   }
 
-  // ── ÉTABLI ──────────────────────────────────────────────
   if(id===B.CRAFTING_TABLE){
     tex(ctx,s,{
       A:'#c09040',B:'#a07030',C:'#6a4820',D:'#5a3010',E:'#8a6028',F:'#d0a050',
@@ -1082,19 +985,17 @@ function drawBlockToCanvas(ctx,id,s){
     );return;
   }
 
-  // ── FOUR ──────────────────────────────────────────────
   if(id===B.FURNACE){
     tex(ctx,s,{
-      S:'#7a7a7a',s:'#888888',D:'#3a3a3a',F:'#cc4400',f:'#ff7700',G:'#ffcc00',
-      L:'#606060',
+      S:'#7a7a7a',s:'#888888',D:'#3a3a3a',F:'#cc4400',f:'#ff7700',G:'#ffcc00',L:'#606060',
     },
     'SsSSsSSsSSSsSSsS'+
     'sSsSsSSSsSsSsSsS'+
     'SsSSSsSSsSSSsSsS'+
     'sSSSSSSSSSSSSSSs'+
-    'SDDDDDDDDDDDDDS S'.replace(' ','').slice(0,16)+
-    'SDDDDDDDDDDDDDS '+
-    'SDDDDDDDDDDDDDS '+
+    'SDDDDDDDDDDDDDDS'+
+    'SDDDDDDDDDDDDDDS'+
+    'SDDDDDDDDDDDDDDS'+
     'SDDDDDDDDDDDDDDS'+
     'SffFFFFFFFFFffDS'+
     'SfGGGGGGGGGGGfDS'+
@@ -1107,7 +1008,6 @@ function drawBlockToCanvas(ctx,id,s){
     );return;
   }
 
-  // ── LIT ──────────────────────────────────────────────
   if(id===B.BED){
     tex(ctx,s,{
       W:'#e8e8e8',w:'#d0d0d0',R:'#cc3333',r:'#aa2222',B:'#6b4510',b:'#8b5a2b',
@@ -1131,7 +1031,6 @@ function drawBlockToCanvas(ctx,id,s){
     );return;
   }
 
-  // ── OBSIDIENNE ──────────────────────────────────────────────
   if(id===B.OBSIDIAN){
     tex(ctx,s,{
       A:'#150820',B:'#1c0f2a',C:'#110618',D:'#3a1a50',E:'#2e1440',F:'#221030',
@@ -1139,7 +1038,7 @@ function drawBlockToCanvas(ctx,id,s){
     'AABBAABBCAABBAAB'+
     'ABDDBBABCBBDDBBA'+
     'BADDDDABABDDDDAB'+
-    'CAADDDDBBAADDDD '+
+    'CAADDDDBBAADDDDCA'[0].repeat(16)+
     'AABBAAEFBBCCBBAA'+
     'BABBAABBDDAABBAA'+
     'ABDDBAABBBDDBBAB'+
@@ -1155,12 +1054,9 @@ function drawBlockToCanvas(ctx,id,s){
     );return;
   }
 
-  // ── NEIGE ──────────────────────────────────────────────
   if(id===B.SNOW){
-    tex(ctx,s,{
-      A:'#ffffff',B:'#e8eeff',C:'#d8e8ff',D:'#f0f4ff',
-    },
-    'AAAAAAAADAAAAAD '+
+    tex(ctx,s,{A:'#ffffff',B:'#e8eeff',C:'#d8e8ff',D:'#f0f4ff'},
+    'AAAAAAAADAAAAADA'+
     'AADAADAAAAADAAAD'+
     'AAAAAAAAAAAAAAAA'+
     'DAADAADAAADAADAA'+
@@ -1179,7 +1075,6 @@ function drawBlockToCanvas(ctx,id,s){
     );return;
   }
 
-  // ── GLACE ──────────────────────────────────────────────
   if(id===B.ICE){
     tex(ctx,s,{
       A:'rgba(88,148,255,0.85)',B:'rgba(140,190,255,0.7)',C:'rgba(200,225,255,0.5)',D:'rgba(60,120,220,0.9)',
@@ -1187,10 +1082,10 @@ function drawBlockToCanvas(ctx,id,s){
     'AAAAAAAAAAAAAAAA'+
     'ABBBBBBBBBBBBBBA'+
     'ABCCBBBBBBBBBBBA'+
-    'ABCBBBBBBBBBBBA '+
+    'ABCBBBBBBBBBBBBA'+
     'ABBBBBBBBBBBBBA '+
     'ABBBBBBBDBBBBBA '+
-    'ABBBBBBBDBBBBA  '+
+    'ABBBBBBBDBBBBBBA'+
     'ABBBBBBBDBBBBBA '+
     'ABBBBBBBBBBBBBBA'+
     'ABBBBBDDDDBBBBBA'+
@@ -1203,11 +1098,8 @@ function drawBlockToCanvas(ctx,id,s){
     );return;
   }
 
-  // ── CACTUS ──────────────────────────────────────────────
   if(id===B.CACTUS){
-    tex(ctx,s,{
-      A:'#3a8a28',B:'#2a7018',C:'#48a030',D:'#1e5c10',
-    },
+    tex(ctx,s,{A:'#3a8a28',B:'#2a7018',C:'#48a030',D:'#1e5c10',' ':null},
     '   BAAACAAAB    '+
     '   BAAACAAAB    '+
     'DB BAAACAAAB  BD'+
@@ -1227,11 +1119,8 @@ function drawBlockToCanvas(ctx,id,s){
     );return;
   }
 
-  // ── GRÈS ──────────────────────────────────────────────
   if(id===B.SANDSTONE){
-    tex(ctx,s,{
-      A:'#c8a850',B:'#d8ba60',C:'#b89038',D:'#e8cc78',E:'#a88030',
-    },
+    tex(ctx,s,{A:'#c8a850',B:'#d8ba60',C:'#b89038',D:'#e8cc78',E:'#a88030'},
     'BBBBBBBBBBBBBBBB'+
     'BAABABABABABABAB'+
     'BAABABABABABABAB'+
@@ -1251,11 +1140,8 @@ function drawBlockToCanvas(ctx,id,s){
     );return;
   }
 
-  // ── ARGILE ──────────────────────────────────────────────
   if(id===B.CLAY){
-    tex(ctx,s,{
-      A:'#9090b0',B:'#a0a0c0',C:'#8888a8',D:'#b0b0d0',
-    },
+    tex(ctx,s,{A:'#9090b0',B:'#a0a0c0',C:'#8888a8',D:'#b0b0d0'},
     'ABABABABABABABAB'+
     'BABABABABABABABA'+
     'ABABABABABABABAB'+
@@ -1275,7 +1161,6 @@ function drawBlockToCanvas(ctx,id,s){
     );return;
   }
 
-  // ── COBBLE MOUSSU ──────────────────────────────────────────────
   if(id===B.MOSSY){
     tex(ctx,s,{
       A:'#787878',B:'#686868',C:'#888888',D:'#4a8a30',E:'#3a7020',F:'#5a9e3a',
@@ -1287,7 +1172,7 @@ function drawBlockToCanvas(ctx,id,s){
     'BFFFBBBBBBDFFBBB'+
     'BFFFBBBBBBDFFBBB'+
     'BEEEEEBBBEEEEEBB'+
-    'BBBBBBBBBBBBBBB '+
+    'BBBBBBBBBBBBBBBB'+
     'BBEEEEBBBBEEEEBB'+
     'BFFFBBBBBBFFFBBB'+
     'BFFDBBBBBDFDFBBB'+
@@ -1299,7 +1184,6 @@ function drawBlockToCanvas(ctx,id,s){
     );return;
   }
 
-  // ── BIBLIOTHÈQUE ──────────────────────────────────────────────
   if(id===B.BOOKSHELF){
     tex(ctx,s,{
       W:'#a87640',w:'#8a5e28',
@@ -1324,11 +1208,8 @@ function drawBlockToCanvas(ctx,id,s){
     );return;
   }
 
-  // ── LAINE ──────────────────────────────────────────────
   if(id===B.WOOL){
-    tex(ctx,s,{
-      A:'#cc4444',B:'#dd5555',C:'#bb3333',D:'#d04848',E:'#e06060',
-    },
+    tex(ctx,s,{A:'#cc4444',B:'#dd5555',C:'#bb3333',D:'#d04848',E:'#e06060'},
     'ABCDABCDABCDABCD'+
     'BCDABCDABCDABCDA'+
     'CDABCDABCDABCDAB'+
@@ -1348,11 +1229,8 @@ function drawBlockToCanvas(ctx,id,s){
     );return;
   }
 
-  // ── TNT ──────────────────────────────────────────────
   if(id===B.TNT){
-    tex(ctx,s,{
-      R:'#cc2020',W:'#eeeeee',r:'#aa1010',B:'#880000',
-    },
+    tex(ctx,s,{R:'#cc2020',W:'#eeeeee',r:'#aa1010',B:'#880000'},
     'WWWWWWWWWWWWWWWW'+
     'WWWWWWWWWWWWWWWW'+
     'WWWWWWWWWWWWWWWW'+
@@ -1370,23 +1248,16 @@ function drawBlockToCanvas(ctx,id,s){
     'WWWWWWWWWWWWWWWW'+
     'WWWWWWWWWWWWWWWW'
     );
-    // Lettres TNT
     const ps=s/16;
     ctx.fillStyle='#cc2020';
-    // T
     [[2,4,4,1],[3,5,2,3]].forEach(([c,r,w,h])=>ctx.fillRect(Math.floor(c*ps),Math.floor(r*ps),Math.ceil(w*ps),Math.ceil(h*ps)));
-    // N
     [[6,4,1,4],[7,5,1,1],[8,4,1,4],[7,6,1,1]].forEach(([c,r,w,h])=>ctx.fillRect(Math.floor(c*ps),Math.floor(r*ps),Math.ceil(w*ps),Math.ceil(h*ps)));
-    // T
     [[10,4,4,1],[11,5,2,3]].forEach(([c,r,w,h])=>ctx.fillRect(Math.floor(c*ps),Math.floor(r*ps),Math.ceil(w*ps),Math.ceil(h*ps)));
     return;
   }
 
-  // ── ÉCHELLE ──────────────────────────────────────────────
   if(id===B.LADDER){
-    tex(ctx,s,{
-      S:'#7a5010',s:'#8a6018',d:'#6a4010',
-    },
+    tex(ctx,s,{S:'#7a5010',s:'#8a6018',d:'#6a4010',' ':null},
     '  SS          SS'+
     '  SS          SS'+
     '  ssssssssssssss'+
@@ -1406,13 +1277,11 @@ function drawBlockToCanvas(ctx,id,s){
     );return;
   }
 
-  // ── MINERAIS ──────────────────────────────────────────────
   if(id===B.COAL_ORE){oreBlock(ctx,s,'#111111');return;}
   if(id===B.IRON_ORE){oreBlock(ctx,s,'#c07a50');return;}
   if(id===B.GOLD_ORE){oreBlock(ctx,s,'#fcee4a');return;}
   if(id===B.DIAMOND_ORE){oreBlock(ctx,s,'#5decf5');return;}
 
-  // Défaut
   {const ps=s/16;ctx.fillStyle='#888';ctx.fillRect(0,0,s,s);}
 }
 
@@ -1442,10 +1311,17 @@ function drawBlock(ctx,id,x,y,size,light=1){
 // ══════════════════════════════════════════════════════════════
 //  ITEM ICONS
 // ══════════════════════════════════════════════════════════════
+// FIX: itemCache also bounded
 const itemCache=new Map();
+const ITEM_CACHE_MAX=300;
+
 function getItemCanvas(id,size=32){
   const key=`item_${id}_${size}`;
   if(itemCache.has(key))return itemCache.get(key);
+  if(itemCache.size>=ITEM_CACHE_MAX){
+    const firstKey=itemCache.keys().next().value;
+    itemCache.delete(firstKey);
+  }
   const c=document.createElement('canvas');c.width=c.height=size;
   const ctx2=c.getContext('2d');
   if(id<=35&&id>0){drawBlockToCanvas(ctx2,id,size);}
@@ -1485,6 +1361,7 @@ function drawToolIcon(ctx,id,s){
 // ══════════════════════════════════════════════════════════════
 //  CHARACTER & MOB RENDERING
 // ══════════════════════════════════════════════════════════════
+// FIX: walkTime is now updated in update() not render() — no frame lag
 let walkTime = 0;
 
 const SKINS = [
@@ -1496,124 +1373,58 @@ const SKINS = [
 ];
 function getSkin(pid){ let h=0; for(const c of(pid||'')) h=(h*31+c.charCodeAt(0))&0xffff; return SKINS[h%SKINS.length]; }
 
-/*
-  Steve en vue de côté — proportions Minecraft exactes (1 "px MC" = 1 unité) :
-    Tête  : 8 × 8  unités
-    Corps : 8 × 12 unités
-    Jambe : 4 × 12 unités  (×2)
-    Bras  : 4 × 12 unités  (×2, collés sur les côtés du corps)
-  Total hauteur : 32 unités → on veut PL.h blocs = 1.8 × TILE pixels
-  Donc : 1 unité = (1.8 × TILE) / 32 pixels
-
-  Largeur totale visible : bras(4) + corps(8) + bras(4) = 16 unités = 0.9 bloc côté à côté
-  On centre le personnage sur le centre horizontal de la hitbox.
-
-  Le personnage est dessiné depuis sy (haut de la hitbox) vers le bas.
-  sx = écran X du coin haut-gauche de la hitbox (PL.x en monde → écran).
-  Le centre X est : sx + PL.w/2 * TILE
-*/
-/*
- * drawCharacter — Steve Minecraft vue de côté, proportions pixel-perfect
- *
- * Appel : drawCharacter(ctx, sx, sy, tile, dir, skin, name, hp, maxHp, isWalking)
- *   sx, sy  = coin haut-gauche de la hitbox monde→écran (w2s(pl.x, pl.y))
- *   tile    = TILE (pixels par bloc)
- *   dir     = 1 (droite) ou -1 (gauche)
- *
- * Modèle Minecraft (unités MC, 1u = 1/16 bloc dans le jeu original) :
- *   Tête  : 8×8u
- *   Corps : 8×12u
- *   Jambe : 4×12u (×2)
- *   Bras  : 4×12u (×2, accolés aux côtés du corps)
- *   Total : 32u de haut, 16u de large (avec bras)
- *
- * On veut que le modèle fasse exactement 2 blocs de haut à l'écran.
- * → 1u = tile/16 pixels    (32u * tile/16 = 2*tile px)
- * La hitbox fait 1.8 blocs → décalage de 0.2*tile vers le haut
- * La largeur totale = 16u * tile/16 = 1 bloc = tile px (centré sur hitbox 0.8 bloc)
- */
 function drawCharacter(ctx, sx, sy, tile, dir, skin, name, hp=20, maxHp=20, isWalking=false){
-  // 1 unité MC → pixels
   const U = tile / 16;
-
-  // Centre X : milieu de la hitbox (0.8 bloc de large)
   const CX = Math.round(sx + 0.4 * tile);
-  // Haut du modèle : décalé de 0.2 blocs vers le haut (modèle 2 blocs, hitbox 1.8)
   const TY = Math.round(sy - 0.2 * tile);
-
-  // ─ Helpers ─
   const p   = (u) => Math.max(1, Math.round(u * U));
-  // coordonnée X absolue depuis CX (ux en unités centrées sur le body)
   const ax  = (ux) => Math.round(CX + ux * U);
-  // coordonnée Y absolue depuis TY
   const ay  = (uy) => Math.round(TY + uy * U);
-
-  // Rect rempli — ux centré sur body (0=milieu), uy depuis le haut du modèle
   const rect = (ux, uy, uw, uh, col) => {
     ctx.fillStyle = col;
     ctx.fillRect(ax(ux), ay(uy), p(uw), p(uh));
   };
-
-  // Rect avec ombre (côté droit + bas) → effet cube papercraft
   const cube = (ux, uy, uw, uh, col, dark) => {
     rect(ux, uy, uw, uh, col);
     const sh = Math.max(1, Math.round(U * 1.5));
     ctx.fillStyle = dark;
-    ctx.fillRect(ax(ux) + p(uw) - sh, ay(uy), sh, p(uh)); // droite
-    ctx.fillRect(ax(ux), ay(uy) + p(uh) - sh, p(uw), sh); // bas
+    ctx.fillRect(ax(ux) + p(uw) - sh, ay(uy), sh, p(uh));
+    ctx.fillRect(ax(ux), ay(uy) + p(uh) - sh, p(uw), sh);
   };
-
-  // Animation de marche — quand sw=0 (immobile), les membres sont droits, pas de fantôme
   const sw = isWalking ? Math.sin(walkTime * 6.5) * 0.36 : 0;
 
-  // ── Ombre au sol ──
   ctx.fillStyle = 'rgba(0,0,0,0.18)';
   ctx.beginPath();
   ctx.ellipse(CX, ay(32), p(6), p(2), 0, 0, Math.PI * 2);
   ctx.fill();
 
-  // ━━ ORDRE DE DESSIN : arrière → corps → avant ━━
-
-  // ── Bras arrière ──
-  // Corps : -4 à +4u. Bras accolé côté opposé au regard. Pivot = épaule = bord du corps
+  // Bras arrière
   {
     const pivX = ax(dir > 0 ? -4 : 4);
     const pivY = ay(8);
-    ctx.save();
-    ctx.translate(pivX, pivY);
-    ctx.rotate(dir > 0 ? sw : -sw);
+    ctx.save();ctx.translate(pivX, pivY);ctx.rotate(dir > 0 ? sw : -sw);
     ctx.fillStyle = skin.shirtD;
-    // Bras arrière : s'étend vers l'extérieur depuis le pivot
     ctx.fillRect(dir > 0 ? -p(4) : 0, 0, p(4), p(12));
     ctx.restore();
   }
-
-  // ── Jambe arrière ──
-  // Hanches à y=20u, jambes centrées : jambe arrière côté opposé
+  // Jambe arrière
   {
     const pivX = ax(dir > 0 ? -2 : 2);
     const pivY = ay(20);
-    ctx.save();
-    ctx.translate(pivX, pivY);
-    ctx.rotate(dir > 0 ? sw : -sw);
+    ctx.save();ctx.translate(pivX, pivY);ctx.rotate(dir > 0 ? sw : -sw);
     ctx.fillStyle = skin.pantsD;
     ctx.fillRect(-p(2), 0, p(4), p(10));
     ctx.fillStyle = skin.shoes;
     ctx.fillRect(-p(2), p(10), p(4), p(2));
     ctx.restore();
   }
-
-  // ── Corps ──
   cube(-4, 8, 8, 12, skin.shirt, skin.shirtD);
   rect(-4, 18, 8, 1.5, '#181818');
-
-  // ── Jambe avant ──
+  // Jambe avant
   {
     const pivX = ax(dir > 0 ? 2 : -2);
     const pivY = ay(20);
-    ctx.save();
-    ctx.translate(pivX, pivY);
-    ctx.rotate(dir > 0 ? -sw : sw);
+    ctx.save();ctx.translate(pivX, pivY);ctx.rotate(dir > 0 ? -sw : sw);
     ctx.fillStyle = skin.pants;
     ctx.fillRect(-p(2), 0, p(4), p(10));
     ctx.fillStyle = skin.pantsD;
@@ -1622,62 +1433,45 @@ function drawCharacter(ctx, sx, sy, tile, dir, skin, name, hp=20, maxHp=20, isWa
     ctx.fillRect(-p(2), p(10), p(4), p(2));
     ctx.restore();
   }
-
-  // ── Bras avant ──
+  // Bras avant
   {
     const pivX = ax(dir > 0 ? 4 : -4);
     const pivY = ay(8);
-    ctx.save();
-    ctx.translate(pivX, pivY);
-    ctx.rotate(dir > 0 ? -sw : sw);
+    ctx.save();ctx.translate(pivX, pivY);ctx.rotate(dir > 0 ? -sw : sw);
     ctx.fillStyle = skin.shirt;
-    // Bras avant : s'étend vers l'extérieur depuis le pivot
     ctx.fillRect(dir > 0 ? 0 : -p(4), 0, p(4), p(12));
     ctx.fillStyle = skin.shirtD;
-    // Ombre côté droit du bras
     ctx.fillRect(dir > 0 ? p(3) : -p(4), 0, Math.max(1, Math.round(U*1.2)), p(12));
     ctx.restore();
   }
-
-  // ── Tête ──
   cube(-4, 0, 8, 8, skin.face, skin.hair);
   rect(-4, 0, 8, 1.5, skin.hair);
   if(dir > 0) rect(-4, 0, 1.5, 8, skin.hair);
   else         rect(2.5, 0, 1.5, 8, skin.hair);
-
   if(dir > 0){
-    rect(1.5, 3, 2, 2, '#fff');
-    rect(2, 3.5, 1.5, 1.5, '#111');
-    rect(-3.5, 3, 1.5, 1.5, 'rgba(255,255,255,0.2)');
+    rect(1.5, 3, 2, 2, '#fff');rect(2, 3.5, 1.5, 1.5, '#111');rect(-3.5, 3, 1.5, 1.5, 'rgba(255,255,255,0.2)');
   } else {
-    rect(-3.5, 3, 2, 2, '#fff');
-    rect(-3.5, 3.5, 1.5, 1.5, '#111');
-    rect(2, 3, 1.5, 1.5, 'rgba(255,255,255,0.2)');
+    rect(-3.5, 3, 2, 2, '#fff');rect(-3.5, 3.5, 1.5, 1.5, '#111');rect(2, 3, 1.5, 1.5, 'rgba(255,255,255,0.2)');
   }
   rect(-2, 6, 4, 1, 'rgba(0,0,0,0.28)');
-
-  // ── Nametag ──
   if(name){
     const fs = Math.max(9, Math.round(U * 5));
     ctx.font = `bold ${fs}px Inter,sans-serif`;
     const nw = ctx.measureText(name).width;
     const tx = Math.round(CX - nw / 2 - 4);
     const ty = Math.round(TY - fs - 4);
-    ctx.fillStyle = 'rgba(0,0,0,0.65)';
-    ctx.fillRect(tx, ty, nw + 8, fs + 4);
-    ctx.fillStyle = skin.name;
-    ctx.fillText(name, tx + 4, ty + fs);
+    ctx.fillStyle = 'rgba(0,0,0,0.65)';ctx.fillRect(tx, ty, nw + 8, fs + 4);
+    ctx.fillStyle = skin.name;ctx.fillText(name, tx + 4, ty + fs);
   }
-
-  // ── Barre de vie ──
   if(hp < maxHp){
     const bw = p(16), bh = 3;
     const bx = Math.round(CX - bw / 2);
     const by = Math.round(TY - 3);
-    ctx.fillStyle = '#400'; ctx.fillRect(bx, by, bw, bh);
-    ctx.fillStyle = '#4f4'; ctx.fillRect(bx, by, Math.round(bw * (hp / maxHp)), bh);
+    ctx.fillStyle = '#400';ctx.fillRect(bx, by, bw, bh);
+    ctx.fillStyle = '#4f4';ctx.fillRect(bx, by, Math.round(bw * (hp / maxHp)), bh);
   }
 }
+
 function drawMob(ctx,sx,sy,tile,mob){
   const sc=tile/32;
   const pr=(x,y,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(Math.round(sx+x*sc),Math.round(sy+y*sc),Math.ceil(w*sc),Math.ceil(h*sc));};
@@ -1698,7 +1492,6 @@ function drawMob(ctx,sx,sy,tile,mob){
       ctx.beginPath();ctx.moveTo(Math.round(sx+(bx+14)*sc),ly);ctx.lineTo(Math.round(sx+(24+i)*sc),ly-6*sc+i*3*sc);ctx.stroke();
     }
     pr(bx,by,14,10,'#222');pr(bx+2,by-4,10,8,'#333');pr(bx+3,by-10,8,8,'#2a2a2a');
-    ctx.fillStyle='#ff2020';
     if(mob.dir>0){pr(bx+9,by-8,2,2,'#ff2020');pr(bx+11,by-8,2,2,'#ff2020');}
     else{pr(bx+3,by-8,2,2,'#ff2020');pr(bx+5,by-8,2,2,'#ff2020');}
   }
@@ -1713,14 +1506,9 @@ function drawMob(ctx,sx,sy,tile,mob){
 let ws=null,myId=null,roomCode='',pName='',inGame=false;
 
 const PL={
-  x:0,y:0,vx:0,vy:0,
-  hp:20,maxHp:20,
-  onGround:false,
-  coyote:0,jumpPressed:false,
-  w:0.8,h:1.8,
-  dir:1,
-  spawnX:0,spawnY:0,
-  hasBed:false,bedX:0,bedY:0,
+  x:0,y:0,vx:0,vy:0,hp:20,maxHp:20,
+  onGround:false,coyote:0,jumpPressed:false,
+  w:0.8,h:1.8,dir:1,spawnX:0,spawnY:0,hasBed:false,bedX:0,bedY:0,
 };
 
 const inv=new Array(36).fill(null);
@@ -1734,41 +1522,32 @@ let mouseX=0,mouseY=0;
 let mDown=false;
 const keys={};
 let lastMove=0;
+// FIX: isWalking computed in update(), used in render()
+let isWalking=false;
 
 // ══════════════════════════════════════════════════════════════
 //  DRAG AND DROP STATE
 // ══════════════════════════════════════════════════════════════
 let drag={
-  active:false,
-  itemId:null,
-  count:0,
-  sourceType:null,  // 'inv' | 'craft'
-  sourceIdx:null,
-  ghost:null,
+  active:false,itemId:null,count:0,sourceType:null,sourceIdx:null,
 };
 
 function startDrag(itemId,count,sourceType,sourceIdx,e){
-  drag.active=true;
-  drag.itemId=itemId;
-  drag.count=count;
-  drag.sourceType=sourceType;
-  drag.sourceIdx=sourceIdx;
+  drag.active=true;drag.itemId=itemId;drag.count=count;
+  drag.sourceType=sourceType;drag.sourceIdx=sourceIdx;
   const ghost=document.getElementById('drag-ghost');
   ghost.style.display='block';
   const ic=getItemCanvas(itemId,40);
+  ghost.getContext('2d').clearRect(0,0,40,40);
   ghost.getContext('2d').drawImage(ic,0,0);
   moveDragGhost(e.clientX,e.clientY);
 }
-
 function moveDragGhost(x,y){
   const ghost=document.getElementById('drag-ghost');
-  ghost.style.left=x+'px';
-  ghost.style.top=y+'px';
+  ghost.style.left=x+'px';ghost.style.top=y+'px';
 }
-
 function endDrag(){
-  drag.active=false;
-  drag.itemId=null;
+  drag.active=false;drag.itemId=null;
   document.getElementById('drag-ghost').style.display='none';
   document.querySelectorAll('.drag-over').forEach(el=>el.classList.remove('drag-over'));
 }
@@ -1786,7 +1565,13 @@ function connect(cb){
   ws.onopen=cb;
   ws.onmessage=e=>onMsg(JSON.parse(e.data));
   ws.onerror=()=>menuErr('Connexion impossible.');
-  ws.onclose=()=>{if(inGame)menuErr('Déconnecté.');};
+  // FIX: Show proper disconnect overlay instead of just menuErr when in-game
+  ws.onclose=()=>{
+    if(inGame){
+      inGame=false;
+      document.getElementById('disconnect').classList.add('show');
+    }
+  };
 }
 function send(o){if(ws&&ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify(o));}
 
@@ -1868,7 +1653,7 @@ function loop(ts){
 }
 
 // ══════════════════════════════════════════════════════════════
-//  PHYSICS — fixed collision, smooth camera
+//  PHYSICS
 // ══════════════════════════════════════════════════════════════
 const GRAV=28,JUMP=-10.5,SPEED=4.5;
 
@@ -1876,30 +1661,24 @@ function update(dt){
   if(document.getElementById('death').classList.contains('show'))return;
   if(document.getElementById('chat-input-wrap').classList.contains('open'))return;
 
-  // ─ Input — only e.code based (fixes AZERTY/QWERTY, sticky keys) ─
   let moveX=0;
   if(keys['KeyA']||keys['ArrowLeft'])  {moveX=-1;PL.dir=-1;}
   if(keys['KeyD']||keys['ArrowRight']) {moveX=1;PL.dir=1;}
   PL.vx=moveX*SPEED;
 
-  // ─ Ladder ─
   const midX=Math.floor(PL.x+PL.w/2);
   const midY=Math.floor(PL.y+PL.h/2);
   const onLadder=getB(midX,midY)===B.LADDER||getB(midX,midY+1)===B.LADDER;
 
-  // ─ Jump — vérifié AVANT la gravité, coyote time pour plus de réactivité ─
   const jumpKey=(keys['KeyW']||keys['ArrowUp']||keys['Space']);
   if(PL.onGround) PL.coyote=0.1;
   else if(PL.coyote>0) PL.coyote-=dt;
 
   if(jumpKey&&!PL.jumpPressed&&PL.coyote>0&&!onLadder){
-    PL.vy=JUMP;
-    PL.coyote=0;
-    PL.onGround=false;
+    PL.vy=JUMP;PL.coyote=0;PL.onGround=false;
   }
   PL.jumpPressed=jumpKey;
 
-  // ─ Gravité (indépendante du framerate via dt) ─
   if(onLadder){
     if(jumpKey)PL.vy=-3.5;
     else if(keys['KeyS']||keys['ArrowDown'])PL.vy=2;
@@ -1908,45 +1687,35 @@ function update(dt){
     PL.vy=Math.min(PL.vy+GRAV*dt, 15);
   }
 
-  // ─ Move X ─
   const nx=PL.x+PL.vx*dt;
   if(!collidesX(nx,PL.y))PL.x=nx;
   else PL.vx=0;
 
-  // ─ Move Y — substeps to prevent tunneling ─
   const steps=4;
   const stepDy=(PL.vy*dt)/steps;
   PL.onGround=false;
   for(let s2=0;s2<steps;s2++){
     const ny=PL.y+stepDy;
     if(collidesY(PL.x,ny)){
-      if(stepDy>0){
-        // Snap au sol : arrondi bas vers le bloc entier
-        PL.y=Math.round((PL.y+PL.h-0.001))-PL.h;
-        PL.onGround=true;
-      }else{
-        PL.y=Math.ceil(ny)+0.001;
-      }
-      PL.vy=0;
-      break;
-    }else{
-      PL.y=ny;
-    }
+      if(stepDy>0){PL.y=Math.round((PL.y+PL.h-0.001))-PL.h;PL.onGround=true;}
+      else{PL.y=Math.ceil(ny)+0.001;}
+      PL.vy=0;break;
+    }else{PL.y=ny;}
   }
-
   PL.y=Math.max(0,Math.min(WH-PL.h-0.001,PL.y));
 
-  // ─ Camera: slow smooth Y = "basculement" camera feeling, no snap ─
   const targetCX=PL.x+PL.w/2;
   const targetCY=PL.y+PL.h/2;
   cam.x+=(targetCX-cam.x)*0.3;
   cam.y+=(targetCY-cam.y)*0.08;
 
-  // ─ Chunks ─
   const vcx=Math.floor(cam.x/CHUNK);
   for(let c=vcx-5;c<=vcx+5;c++)reqChunk(c);
 
-  // ─ Block breaking ─
+  // FIX: isWalking computed in update() — no frame lag in animation
+  isWalking=Math.abs(PL.vx)>0.1&&PL.onGround;
+  if(isWalking) walkTime += dt * 4;
+
   if(mDown&&!panelOpen()){
     const wp=s2w(mouseX,mouseY);
     const bx=Math.floor(wp.x),by=Math.floor(wp.y);
@@ -1970,14 +1739,12 @@ function update(dt){
     }else breaking=null;
   }else breaking=null;
 
-  // ─ Send position ─
   const now=performance.now();
   if(now-lastMove>50){send({type:'move',x:PL.x,y:PL.y,dir:PL.dir});lastMove=now;}
 
   document.getElementById('coords').innerHTML=`X: ${Math.floor(PL.x)} &nbsp;Y: ${Math.floor(PL.y)}`;
 }
 
-// ─ Collision: more sample points for accuracy ─
 function collidesX(nx,y){
   const lx=nx+0.02, rx=nx+PL.w-0.02;
   for(const fy of[y+0.05,y+PL.h*0.33,y+PL.h*0.66,y+PL.h-0.05]){
@@ -2005,12 +1772,8 @@ function panelOpen(){
 // ══════════════════════════════════════════════════════════════
 //  COORDINATE TRANSFORMS
 // ══════════════════════════════════════════════════════════════
-function w2s(wx,wy){
-  return{x:(wx-cam.x)*TILE+canvas.width/2,y:(wy-cam.y)*TILE+canvas.height/2};
-}
-function s2w(sx,sy){
-  return{x:(sx-canvas.width/2)/TILE+cam.x,y:(sy-canvas.height/2)/TILE+cam.y};
-}
+function w2s(wx,wy){return{x:(wx-cam.x)*TILE+canvas.width/2,y:(wy-cam.y)*TILE+canvas.height/2};}
+function s2w(sx,sy){return{x:(sx-canvas.width/2)/TILE+cam.x,y:(sy-canvas.height/2)/TILE+cam.y};}
 
 // ══════════════════════════════════════════════════════════════
 //  RENDER
@@ -2028,14 +1791,12 @@ function render(){
   const W=canvas.width,H=canvas.height;
   const light=getLightLevel();
 
-  // Sky gradient
   const sr=lerp(0x0a,0x87,light),sg=lerp(0x0a,0xCE,light),sb=lerp(0x1a,0xEB,light);
   const grad=ctx.createLinearGradient(0,0,0,H);
   grad.addColorStop(0,`rgb(${~~sr},${~~sg},${~~sb})`);
   grad.addColorStop(1,`rgb(${~~lerp(0x05,0x5a,light)},${~~lerp(0x0a,0x9f,light)},${~~lerp(0x10,0xc8,light)})`);
   ctx.fillStyle=grad;ctx.fillRect(0,0,W,H);
 
-  // Sun / Moon
   const angle=(dayTime/24000)*Math.PI*2-Math.PI/2;
   const orbitR=Math.min(W,H)*.42;
   const cx2=W/2+Math.cos(angle)*orbitR;
@@ -2057,7 +1818,6 @@ function render(){
     }
   }
 
-  // Tiles
   const tilesX=Math.ceil(W/TILE/2)+2;
   const tilesY=Math.ceil(H/TILE/2)+2;
   const startWX=Math.floor(cam.x)-tilesX;
@@ -2070,14 +1830,12 @@ function render(){
       const b=getB(wx,wy);if(b===B.AIR)continue;
       const{x,y}=w2s(wx,wy);
       if(x<-TILE||x>W+TILE||y<-TILE||y>H+TILE)continue;
-      // Pour GRASS : n'afficher le vert que si le bloc au-dessus est AIR (vraie surface exposée à l'air, pas eau)
-      const blockAbove = getB(wx, wy-1);
-      const drawId = (b===B.GRASS && blockAbove!==B.AIR) ? B.DIRT : b;
+      const blockAbove=getB(wx,wy-1);
+      const drawId=(b===B.GRASS&&blockAbove!==B.AIR)?B.DIRT:b;
       drawBlock(ctx,drawId,x,y,TILE,light);
     }
   }
 
-  // Breaking overlay
   if(breaking){
     const{x,y}=w2s(breaking.wx,breaking.wy);
     const prog=breaking.prog/breaking.total;
@@ -2091,35 +1849,26 @@ function render(){
     ctx.fillStyle='#4ade80';ctx.fillRect(x+2,y+TILE-6,(TILE-4)*prog,4);
   }
 
-  // Night overlay
   if(light<1){
     ctx.fillStyle=`rgba(0,0,20,${(1-light)*.7})`;ctx.fillRect(0,0,W,H);
   }
-
-  // Walk animation
-  const isWalking=Math.abs(PL.vx)>0.1&&PL.onGround;
-  if(isWalking) walkTime += renderDt * 4; // renderDt passed from loop
 
   // Other players
   for(const[,pd]of others){
     const{x,y}=w2s(pd.x,pd.y);
     if(x<-80||x>W+80)continue;
-    const isOtherWalking=Math.abs((pd.prevX||pd.x)-pd.x)>0.01;
-    drawCharacter(ctx,x,y,TILE,pd.dir,getSkin(pd.id),pd.name,pd.hp,20,isOtherWalking);
+    drawCharacter(ctx,x,y,TILE,pd.dir,getSkin(pd.id),pd.name,pd.hp,20,false);
   }
-
   // Mobs
   for(const[,m]of mobs){
     const{x,y}=w2s(m.x,m.y);
     if(x<-80||x>W+80)continue;
     drawMob(ctx,x,y,TILE,m);
   }
-
-  // Player
+  // Player (isWalking computed in update)
   const{x:px,y:py}=w2s(PL.x,PL.y);
   drawCharacter(ctx,px,py,TILE,PL.dir,getSkin(myId),pName,PL.hp,20,isWalking);
 
-  // Cursor highlight — use consistent center
   const wp=s2w(mouseX,mouseY);
   const hx=Math.floor(wp.x),hy=Math.floor(wp.y);
   const{x:hsx,y:hsy}=w2s(hx,hy);
@@ -2128,7 +1877,6 @@ function render(){
   ctx.strokeStyle=dist<6.5?'rgba(255,255,255,0.7)':'rgba(255,100,100,0.4)';
   ctx.lineWidth=1.5;ctx.strokeRect(hsx+1,hsy+1,TILE-2,TILE-2);
 
-  // Day bar
   const isDay=dayTime<13000||dayTime>22000;
   const pct=isDay?Math.floor(((dayTime<13000?dayTime:dayTime-22000)/(isDay?13000:2000))*100):Math.floor(((dayTime-13000)/9000)*100);
   document.getElementById('day-bar').textContent=isDay?`☀ Jour — ${Math.min(pct,100)}%`:`☾ Nuit — ${Math.min(pct,100)}%`;
@@ -2138,10 +1886,29 @@ function render(){
 //  INVENTORY
 // ══════════════════════════════════════════════════════════════
 function addInv(item,count){
-  for(let i=0;i<inv.length;i++){if(inv[i]?.i===item&&inv[i].n<64){inv[i].n+=count;refreshAll();return true;}}
-  for(let i=0;i<inv.length;i++){if(!inv[i]){inv[i]={i:item,n:count};refreshAll();return true;}}
-  return false;
+  // FIX: Cap stack at 64 when merging
+  for(let i=0;i<inv.length;i++){
+    if(inv[i]?.i===item&&inv[i].n<64){
+      const canAdd=Math.min(count,64-inv[i].n);
+      inv[i].n+=canAdd;
+      count-=canAdd;
+      if(count<=0){refreshAll();return true;}
+    }
+  }
+  while(count>0){
+    let placed=false;
+    for(let i=0;i<inv.length;i++){
+      if(!inv[i]){
+        const stack=Math.min(count,64);
+        inv[i]={i:item,n:stack};
+        count-=stack;placed=true;break;
+      }
+    }
+    if(!placed)break;
+  }
+  refreshAll();return count===0;
 }
+
 function removeInv(item,count){
   let rem=count;
   for(let i=0;i<inv.length;i++){
@@ -2172,7 +1939,6 @@ function refreshHotbar(){
   });
 }
 
-// ── Drag-and-drop inventory grid ──
 function buildInvGrid(){
   const g=document.getElementById('inv-grid');g.innerHTML='';
   for(let i=0;i<36;i++){
@@ -2211,20 +1977,14 @@ function addSlotDragEvents(el,sourceType,sourceIdx){
   el.addEventListener('mousedown',e=>{
     if(e.button!==0)return;
     let item=null;
-    if(sourceType==='inv')item=inv[sourceIdx];
+    if(sourceType==='inv'||sourceType==='craft-inv')item=inv[sourceIdx];
     else if(sourceType==='craft')item=craftGridItems[sourceIdx]!=null?{i:craftGridItems[sourceIdx],n:1}:null;
     if(!item)return;
     e.preventDefault();
     startDrag(item.i,item.n,sourceType,sourceIdx,e);
   });
-
-  el.addEventListener('mouseenter',()=>{
-    if(drag.active)el.classList.add('drag-over');
-  });
-  el.addEventListener('mouseleave',()=>{
-    el.classList.remove('drag-over');
-  });
-
+  el.addEventListener('mouseenter',()=>{if(drag.active)el.classList.add('drag-over');});
+  el.addEventListener('mouseleave',()=>{el.classList.remove('drag-over');});
   el.addEventListener('mouseup',e=>{
     if(!drag.active||e.button!==0)return;
     el.classList.remove('drag-over');
@@ -2240,16 +2000,15 @@ function dropOnSlot(destType,destIdx){
   if(srcType===destType&&srcIdx===destIdx){endDrag();return;}
 
   if(srcType==='inv'&&destType==='inv'){
-    // Proper swap: copy both values first to avoid overwrite
     const a=inv[srcIdx]?{...inv[srcIdx]}:null;
     const b=inv[destIdx]?{...inv[destIdx]}:null;
     inv[srcIdx]=b;
     inv[destIdx]=a;
   }
   else if((srcType==='inv'||srcType==='craft-inv')&&destType==='craft'){
-    const realSrcIdx=srcIdx; // index into inv[]
-    if(inv[realSrcIdx]){
-      craftGridItems[destIdx]=inv[realSrcIdx].i;
+    // FIX: Do NOT remove item from inv when dragging to craft grid (it's just a reference)
+    if(inv[srcIdx]){
+      craftGridItems[destIdx]=inv[srcIdx].i;
       refreshCraftGrid();checkCraftMatch();
     }
   }
@@ -2268,10 +2027,7 @@ function dropOnSlot(destType,destIdx){
   refreshAll();
 }
 
-// Global mouseup to cancel drag if released outside
-document.addEventListener('mouseup',()=>{
-  if(drag.active)endDrag();
-});
+document.addEventListener('mouseup',()=>{if(drag.active)endDrag();});
 document.addEventListener('mousemove',e=>{
   mouseX=e.clientX;mouseY=e.clientY;
   if(drag.active)moveDragGhost(e.clientX,e.clientY);
@@ -2285,7 +2041,7 @@ document.addEventListener('mousemove',e=>{
 });
 
 // ══════════════════════════════════════════════════════════════
-//  CRAFTING — shape-invariant, drag and drop
+//  CRAFTING
 // ══════════════════════════════════════════════════════════════
 const craftGridItems=new Array(9).fill(null);
 
@@ -2295,7 +2051,6 @@ function buildCraftGrid(){
     const s=document.createElement('div');s.className='cslot';s.dataset.idx=i;
     s.innerHTML=`<canvas width="38" height="38"></canvas><span class="ic"></span>`;
     addSlotDragEvents(s,'craft',i);
-    // Right-click to clear
     s.addEventListener('contextmenu',e=>{e.preventDefault();craftGridItems[i]=null;refreshCraftGrid();checkCraftMatch();});
     s.addEventListener('mouseenter',()=>{if(craftGridItems[i])showTip(getItemName(craftGridItems[i]));});
     s.addEventListener('mouseleave',hideTip);
@@ -2345,11 +2100,9 @@ function clearCraftGrid(){for(let i=0;i<9;i++)craftGridItems[i]=null;refreshCraf
 let currentRecipe=null;
 
 function checkCraftMatch(){
-  // Convert craftGridItems (null→0) to number array for normalization
   const grid9=craftGridItems.map(c=>c!=null?c:0);
   const recipe=findRecipe(grid9);
   if(recipe){
-    // Check if player has ingredients
     const need={};
     for(const id of grid9)if(id!==0)need[id]=(need[id]||0)+1;
     let canDo=true;
@@ -2364,6 +2117,7 @@ function checkCraftMatch(){
 
 function showCraftResult(r,canDo){
   const cv=document.getElementById('craft-out-cv');
+  cv.getContext('2d').clearRect(0,0,44,44);
   cv.getContext('2d').drawImage(getItemCanvas(r.result.i,44),0,0);
   document.getElementById('craft-out-cnt').textContent=r.result.n>1?r.result.n:'';
   document.getElementById('craft-out-name').textContent=r.name;
@@ -2420,7 +2174,6 @@ function updateRecipeList(){
 }
 
 function loadRecipe(r){
-  // Place recipe shape into center of 3×3 grid
   clearCraftGrid();
   const rh=r.shape.length,rw=r.shape[0].length;
   const offR=Math.floor((3-rh)/2),offC=Math.floor((3-rw)/2);
@@ -2437,86 +2190,48 @@ function openCraftPanel(){document.getElementById('crafting').classList.add('ope
 function closeCraft(){document.getElementById('crafting').classList.remove('open');}
 
 // ══════════════════════════════════════════════════════════════
-//  HEALTH — pixel-art Minecraft hearts
+//  HEALTH — pixel-art hearts
 // ══════════════════════════════════════════════════════════════
-function drawHeartPixels(ctx, x, y, type, scale=2){
-  // type: 'full'|'half'|'empty'
-  // Heart shape: 9x9 pixel pattern (Minecraft)
-  const E = 0; // empty/transparent
-  const B = 1; // border (dark)
-  const F = 2; // fill (red)
-  const H = 3; // highlight (bright)
-  const G = 4; // grey fill (empty heart)
-  const D = 5; // half fill
-
-  // 9x9 heart pixel map (border + fill)
-  const FULL = [
-    [E,B,B,E,E,E,B,B,E],
-    [B,F,F,B,E,B,F,F,B],
-    [B,F,H,F,B,F,F,F,B],
-    [B,F,F,F,F,F,F,F,B],
-    [E,B,F,F,F,F,F,B,E],
-    [E,E,B,F,F,F,B,E,E],
-    [E,E,E,B,F,B,E,E,E],
-    [E,E,E,E,B,E,E,E,E],
-    [E,E,E,E,E,E,E,E,E],
+function drawHeartPixels(ctx,x,y,type,scale=2){
+  const E=0,Bo=1,F=2,H=3,G=4;
+  const FULL=[
+    [E,Bo,Bo,E,E,E,Bo,Bo,E],[Bo,F,F,Bo,E,Bo,F,F,Bo],[Bo,F,H,F,Bo,F,F,F,Bo],
+    [Bo,F,F,F,F,F,F,F,Bo],[E,Bo,F,F,F,F,F,Bo,E],[E,E,Bo,F,F,F,Bo,E,E],
+    [E,E,E,Bo,F,Bo,E,E,E],[E,E,E,E,Bo,E,E,E,E],[E,E,E,E,E,E,E,E,E],
   ];
-  const EMPTY = [
-    [E,B,B,E,E,E,B,B,E],
-    [B,G,G,B,E,B,G,G,B],
-    [B,G,G,G,B,G,G,G,B],
-    [B,G,G,G,G,G,G,G,B],
-    [E,B,G,G,G,G,G,B,E],
-    [E,E,B,G,G,G,B,E,E],
-    [E,E,E,B,G,B,E,E,E],
-    [E,E,E,E,B,E,E,E,E],
-    [E,E,E,E,E,E,E,E,E],
+  const EMPTY=[
+    [E,Bo,Bo,E,E,E,Bo,Bo,E],[Bo,G,G,Bo,E,Bo,G,G,Bo],[Bo,G,G,G,Bo,G,G,G,Bo],
+    [Bo,G,G,G,G,G,G,G,Bo],[E,Bo,G,G,G,G,G,Bo,E],[E,E,Bo,G,G,G,Bo,E,E],
+    [E,E,E,Bo,G,Bo,E,E,E],[E,E,E,E,Bo,E,E,E,E],[E,E,E,E,E,E,E,E,E],
   ];
-  const HALF = [
-    [E,B,B,E,E,E,B,B,E],
-    [B,F,F,B,E,B,G,G,B],
-    [B,F,H,F,B,G,G,G,B],
-    [B,F,F,F,F,G,G,G,B],
-    [E,B,F,F,G,G,G,B,E],
-    [E,E,B,F,G,G,B,E,E],
-    [E,E,E,B,G,B,E,E,E],
-    [E,E,E,E,B,E,E,E,E],
-    [E,E,E,E,E,E,E,E,E],
+  const HALF=[
+    [E,Bo,Bo,E,E,E,Bo,Bo,E],[Bo,F,F,Bo,E,Bo,G,G,Bo],[Bo,F,H,F,Bo,G,G,G,Bo],
+    [Bo,F,F,F,F,G,G,G,Bo],[E,Bo,F,F,G,G,G,Bo,E],[E,E,Bo,F,G,G,Bo,E,E],
+    [E,E,E,Bo,G,Bo,E,E,E],[E,E,E,E,Bo,E,E,E,E],[E,E,E,E,E,E,E,E,E],
   ];
-
-  const colors = {
-    1:'#3f0000', // border
-    2:'#ff0000', // red fill
-    3:'#ff8080', // highlight
-    4:'#7f0000', // empty dark
-    5:'#ff0000', // half fill
-  };
-
-  const map = type==='full'?FULL:type==='half'?HALF:EMPTY;
+  const colors={1:'#3f0000',2:'#ff0000',3:'#ff8080',4:'#7f0000'};
+  const map=type==='full'?FULL:type==='half'?HALF:EMPTY;
   for(let py=0;py<9;py++){
-    for(let px=0;px<9;px++){
-      const v=map[py][px];
-      if(v===E)continue;
+    for(let px2=0;px2<9;px2++){
+      const v=map[py][px2];if(v===E)continue;
       ctx.fillStyle=colors[v];
-      ctx.fillRect(x+px*scale, y+py*scale, scale, scale);
+      ctx.fillRect(x+px2*scale,y+py*scale,scale,scale);
     }
   }
 }
 
 function updateHealth(){
-  const cv=document.getElementById('health-canvas');
-  if(!cv)return;
+  const cv=document.getElementById('health-canvas');if(!cv)return;
   const scale=2;
-  const heartW=9*scale, gap=1;
+  const heartW=9*scale,gap=1;
   const totalW=(heartW+gap)*10-gap;
-  cv.width=totalW; cv.height=9*scale;
+  cv.width=totalW;cv.height=9*scale;
   const ctx2=cv.getContext('2d');
   ctx2.clearRect(0,0,cv.width,cv.height);
-
   for(let i=0;i<10;i++){
     const hp=PL.hp-(i*2);
     const type=hp>=2?'full':hp===1?'half':'empty';
-    drawHeartPixels(ctx2, i*(heartW+gap), 0, type, scale);
+    drawHeartPixels(ctx2,i*(heartW+gap),0,type,scale);
   }
 }
 
@@ -2560,7 +2275,7 @@ function showTip(t){const tt=document.getElementById('tooltip');tt.textContent=t
 function hideTip(){document.getElementById('tooltip').style.display='none';}
 
 // ══════════════════════════════════════════════════════════════
-//  INPUT — e.code ONLY (fixes AZERTY/QWERTY + sticky keys)
+//  INPUT
 // ══════════════════════════════════════════════════════════════
 document.addEventListener('keydown',e=>{
   keys[e.code]=true;
@@ -2594,15 +2309,9 @@ document.addEventListener('keydown',e=>{
   }
 });
 
-document.addEventListener('keyup',e=>{
-  keys[e.code]=false;
-  // Unstick: also clear any left/right keys that might be stuck
-});
+document.addEventListener('keyup',e=>{keys[e.code]=false;});
 
-// Window blur: clear all keys (prevents sticky movement)
-window.addEventListener('blur',()=>{
-  for(const k in keys)keys[k]=false;
-});
+window.addEventListener('blur',()=>{for(const k in keys)keys[k]=false;});
 
 document.addEventListener('wheel',e=>{
   if(!inGame||panelOpen())return;
@@ -2614,7 +2323,6 @@ canvas.addEventListener('mousedown',e=>{
   if(!inGame)return;
   if(e.button===0){
     mDown=true;
-    // Attack mob on left click
     if(!panelOpen()){
       const centerX=PL.x+PL.w/2,centerY=PL.y+PL.h/2;
       for(const[,m]of mobs){
