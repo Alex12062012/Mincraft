@@ -61,18 +61,26 @@ const B = {
   AIR: 0, GRASS: 1, DIRT: 2, STONE: 3, SAND: 4, GRAVEL: 5,
   WOOD: 6, LEAVES: 7, WATER: 8, LAVA: 9, COAL_ORE: 10,
   IRON_ORE: 11, GOLD_ORE: 12, DIAMOND_ORE: 13, BEDROCK: 14,
-  PLANKS: 15, COBBLESTONE: 16, GLASS: 17, BRICK: 18,
+  PLANKS: 15, COBBLE: 16, GLASS: 17, BRICK: 18,
   TORCH: 19, CHEST: 20, CRAFTING_TABLE: 21, FURNACE: 22,
   BED: 23, DOOR: 24, LADDER: 25, TNT: 26, OBSIDIAN: 27,
   SNOW: 28, ICE: 29, CACTUS: 30, CLAY: 31, SANDSTONE: 32,
-  MOSSY_COBBLE: 33, BOOKSHELF: 34, WOOL: 35,
+  MOSSY: 33, BOOKSHELF: 34, WOOL: 35,
 };
 
+// FIX: Consistent block names (was COBBLESTONE vs COBBLE, MOSSY_COBBLE vs MOSSY)
 const VALID_BLOCK_IDS = new Set(Object.values(B).filter(v => v !== B.AIR && v !== B.BEDROCK));
 
 const CHUNK_SIZE = 16;
 const WORLD_HEIGHT = 128;
 const SEA_LEVEL = 64;
+
+// FIX: Max rooms to prevent memory exhaustion from bots
+const MAX_ROOMS = 100;
+// FIX: Stricter chat rate limit (was 100ms = 10msg/sec, now 800ms)
+const RATE_LIMIT_MS = 800;
+// FIX: Safe alphanumeric chars (no ambiguous 0/O, 1/l/I)
+const CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 
 function isPassable(b) {
   return b === B.AIR || b === B.WATER || b === B.LAVA || b === B.TORCH || b === B.LADDER || b === B.LEAVES;
@@ -83,7 +91,6 @@ function generateChunk(cx, seed) {
   const { octave } = createNoise(seed);
   const blocks = {};
 
-  // Pre-compute surface heights for neighbor awareness (trees crossing chunks)
   const surfaceMap = {};
   for (let lx = -2; lx < CHUNK_SIZE + 2; lx++) {
     const wx = cx * CHUNK_SIZE + lx;
@@ -106,10 +113,8 @@ function generateChunk(cx, seed) {
       if (y >= WORLD_HEIGHT - 2) {
         block = B.BEDROCK;
       } else if (y > surfaceY) {
-        // Underground: caves + ores
         const caveV = octave(wx * 0.09, y * 0.09, 3, 0.5, 1);
         if (caveV > 0.26) {
-          // Cave air — fill with water if below sea level
           block = y < SEA_LEVEL ? B.WATER : B.AIR;
         } else {
           const fromBottom = WORLD_HEIGHT - y;
@@ -121,10 +126,8 @@ function generateChunk(cx, seed) {
           else block = B.STONE;
         }
       } else if (y < SEA_LEVEL) {
-        // Above surface but below sea level → open water
         block = B.WATER;
       } else if (y === surfaceY) {
-        // Surface block — never grass underwater
         block = isDesert ? B.SAND : isSnowy ? B.SNOW : B.GRASS;
       } else if (y > surfaceY - 4) {
         block = isDesert ? B.SAND : B.DIRT;
@@ -133,8 +136,9 @@ function generateChunk(cx, seed) {
       if (block !== B.AIR) blocks[key] = block;
     }
 
-    // Trees — only within this chunk (no cross-chunk leaf placement)
-    if (!isDesert && !isSnowy && surfaceY < SEA_LEVEL) {
+    // FIX: Trees condition was inverted (surfaceY < SEA_LEVEL → above water)
+    // Trees only spawn when surface is at or above sea level (on land)
+    if (!isDesert && !isSnowy && surfaceY >= SEA_LEVEL) {
       const treeN = octave(wx * 5.7 + 300, 0, 1, 0.5, 4);
       if (treeN > 0.35) {
         const base = surfaceY - 1;
@@ -142,11 +146,10 @@ function generateChunk(cx, seed) {
           const tk = `${lx},${base - h}`;
           blocks[tk] = B.WOOD;
         }
-        // Leaves — only place within this chunk's lx range
         for (let dy = 0; dy <= 3; dy++) {
           for (let dx = -2; dx <= 2; dx++) {
             const tlx = lx + dx;
-            if (tlx < 0 || tlx >= CHUNK_SIZE) continue; // skip cross-chunk
+            if (tlx < 0 || tlx >= CHUNK_SIZE) continue;
             if (Math.abs(dx) + dy <= 3) {
               const k = `${tlx},${base - 4 - dy}`;
               if (!blocks[k]) blocks[k] = B.LEAVES;
@@ -156,8 +159,8 @@ function generateChunk(cx, seed) {
       }
     }
 
-    // Cactus
-    if (isDesert && surfaceY < SEA_LEVEL) {
+    // FIX: Cactus condition was inverted — same fix
+    if (isDesert && surfaceY >= SEA_LEVEL) {
       const cacN = octave(wx * 8 + 500, 0, 1, 0.5, 3);
       if (cacN > 0.42) {
         for (let h = 1; h <= 3; h++) {
@@ -215,7 +218,7 @@ function setBlock(room, wx, wy, blockId) {
 function findSurface(room, wx) {
   for (let y = 5; y < WORLD_HEIGHT - 5; y++) {
     if (!isPassable(getBlock(room, wx, y)) && isPassable(getBlock(room, wx, y - 1))) {
-      return y - 2; // place player 2 above surface to avoid clipping
+      return y - 2;
     }
   }
   return SEA_LEVEL - 5;
@@ -250,12 +253,15 @@ function tickRoom(room) {
     if (ids.length) room.mobs.delete(ids[0]);
   }
 
+  // FIX: Collect dead mobs first, then delete — avoids modifying Map during iteration
+  const deadMobs = [];
   for (const [id, mob] of room.mobs) {
     updateMob(room, mob);
-    if (mob.hp <= 0) {
-      room.mobs.delete(id);
-      broadcast(room, JSON.stringify({ type: 'mob_die', id }));
-    }
+    if (mob.hp <= 0) deadMobs.push(id);
+  }
+  for (const id of deadMobs) {
+    room.mobs.delete(id);
+    broadcast(room, JSON.stringify({ type: 'mob_die', id }));
   }
 
   if (room.players.size === 0) return;
@@ -305,12 +311,10 @@ function updateMob(room, mob) {
     if (Math.random() < 0.008) mob.dir *= -1;
   }
 
-  // X collision
   const nx = mob.x + mob.vx * 0.05;
   if (isPassable(getBlock(room, Math.floor(nx + (mob.dir > 0 ? 0.9 : 0)), Math.floor(mob.y)))) mob.x = nx;
   else mob.dir *= -1;
 
-  // Y collision (simple)
   const ny = mob.y + mob.vy * 0.05;
   const bBelow = getBlock(room, Math.floor(mob.x + 0.5), Math.floor(ny + 1.8));
   if (mob.vy > 0 && !isPassable(bBelow)) {
@@ -343,11 +347,12 @@ const server = http.createServer((req, res) => {
 
 const wss = new WebSocket.Server({ server });
 
+// FIX: Use explicit safe charset (no ambiguous chars 0/O, 1/l/I)
 function genCode() {
   let code;
   let attempts = 0;
   do {
-    code = Math.random().toString(36).substring(2, 8).toUpperCase();
+    code = Array.from({ length: 6 }, () => CODE_CHARS[Math.floor(Math.random() * CODE_CHARS.length)]).join('');
     attempts++;
     if (attempts > 100) break;
   } while (rooms.has(code));
@@ -360,25 +365,26 @@ function broadcast(room, data, excludeId = null) {
   }
 }
 
-// Rate limiting per player
-const RATE_LIMIT_MS = 100; // min ms between chat messages
-
 wss.on('connection', ws => {
   let player = null, room = null;
   let lastChatTime = 0;
 
-  // Heartbeat / timeout detection
   ws.isAlive = true;
   ws.on('pong', () => { ws.isAlive = true; });
 
   ws.on('message', raw => {
-    if (raw.length > 4096) return; // reject oversized messages
+    if (raw.length > 4096) return;
     let msg;
     try { msg = JSON.parse(raw); } catch { return; }
 
     switch (msg.type) {
       case 'create_room': {
-        if (player) return; // already in a room
+        if (player) return;
+        // FIX: Limit total number of rooms to prevent memory exhaustion
+        if (rooms.size >= MAX_ROOMS) {
+          ws.send(JSON.stringify({ type: 'error', msg: 'Serveur plein, réessayez plus tard.' }));
+          return;
+        }
         const code = genCode();
         room = createRoom(code);
         const pid = crypto.randomUUID();
@@ -419,14 +425,14 @@ wss.on('connection', ws => {
       case 'move': {
         if (!player) return;
         const now = Date.now();
-        // Basic sanity: don't allow teleporting more than 20 blocks per tick
         const dx = Math.abs((msg.x || 0) - player.x);
         const dy = Math.abs((msg.y || 0) - player.y);
         const dt = now - player.lastMoveTime;
-        const maxDist = dt * 0.02; // 20 blocks/sec max
-        if (dx > maxDist + 2 || dy > maxDist + 5) break; // reject teleport
+        const maxDist = dt * 0.02;
+        if (dx > maxDist + 2 || dy > maxDist + 5) break;
         if (!isFinite(msg.x) || !isFinite(msg.y)) break;
-        player.x = msg.x;
+        // FIX: Clamp X to prevent infinite world travel
+        player.x = Math.max(-5000, Math.min(5000, msg.x));
         player.y = Math.max(0, Math.min(WORLD_HEIGHT - 2, msg.y));
         player.dir = msg.dir === -1 ? -1 : 1;
         player.lastMoveTime = now;
@@ -446,10 +452,8 @@ wss.on('connection', ws => {
         if (!room || !player) return;
         const bx = Math.round(msg.x), by = Math.round(msg.y);
         if (!isFinite(bx) || !isFinite(by)) return;
-        // Must be within reach
         const dist = Math.hypot(bx + 0.5 - (player.x + 0.4), by + 0.5 - (player.y + 0.925));
         if (dist > 8) return;
-        // Can't break bedrock
         if (getBlock(room, bx, by) === B.BEDROCK) return;
         setBlock(room, bx, by, B.AIR);
         broadcast(room, JSON.stringify({ type: 'block_change', x: bx, y: by, block: B.AIR }));
@@ -461,7 +465,7 @@ wss.on('connection', ws => {
         const bx = Math.round(msg.x), by = Math.round(msg.y);
         const blockId = parseInt(msg.block);
         if (!isFinite(bx) || !isFinite(by)) return;
-        if (!VALID_BLOCK_IDS.has(blockId)) return; // reject invalid blocks
+        if (!VALID_BLOCK_IDS.has(blockId)) return;
         const dist = Math.hypot(bx + 0.5 - (player.x + 0.4), by + 0.5 - (player.y + 0.925));
         if (dist > 8) return;
         setBlock(room, bx, by, blockId);
@@ -473,7 +477,8 @@ wss.on('connection', ws => {
       case 'chat': {
         if (!room || !player) return;
         const now = Date.now();
-        if (now - lastChatTime < RATE_LIMIT_MS) return; // rate limit
+        // FIX: Stricter rate limit (800ms between messages)
+        if (now - lastChatTime < RATE_LIMIT_MS) return;
         lastChatTime = now;
         const text = (msg.text || '').substring(0, 200).trim();
         if (!text) return;
@@ -488,10 +493,8 @@ wss.on('connection', ws => {
         if (!player || !room) return;
         player.hp = 20;
         if (player.bedX !== null) {
-          // Find safe spot near bed
           const bx = player.bedX;
           let by = player.bedY - 1;
-          // Make sure spawn spot is clear
           for (let attempt = 0; attempt < 5; attempt++) {
             if (isPassable(getBlock(room, bx, by)) && isPassable(getBlock(room, bx, by - 1))) break;
             by--;
@@ -511,15 +514,12 @@ wss.on('connection', ws => {
         if (!room || !player) return;
         const mob = room.mobs.get(msg.mobId);
         if (!mob) return;
-        // Verify distance
         const dist = Math.hypot(mob.x - player.x, mob.y - player.y);
         if (dist > 5) return;
         const dmg = Math.max(1, Math.min(20, parseInt(msg.damage) || 2));
         mob.hp -= dmg;
-        if (mob.hp <= 0) {
-          room.mobs.delete(msg.mobId);
-          broadcast(room, JSON.stringify({ type: 'mob_die', id: msg.mobId }));
-        }
+        // FIX: Don't delete here — let tickRoom handle deletion cleanly
+        // (avoids double mob_die broadcast)
         break;
       }
     }
