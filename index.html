@@ -644,174 +644,790 @@ function getBlockCanvas(id,size=TILE){
   return c;
 }
 
-function drawBlockToCanvas(ctx,id,s){
-  ctx.clearRect(0,0,s,s);
-  const p=(x,y,w,h,color)=>{ctx.fillStyle=color;ctx.fillRect(Math.floor(x*s),Math.floor(y*s),Math.ceil(w*s),Math.ceil(h*s));};
-  switch(id){
-    case B.GRASS:
-      // Fond : terre sur tout le bloc
-      p(0,0,1,1,'#7a5230');
-      // Taches de terre
-      p(0.1,0.15,0.15,0.12,'#6b4520');p(0.4,0.3,0.12,0.1,'#6b4520');p(0.7,0.2,0.14,0.11,'#6b4520');
-      p(0.2,0.55,0.1,0.14,'#8a6040');p(0.55,0.65,0.15,0.12,'#8a6040');p(0.8,0.45,0.1,0.1,'#8a6040');
-      p(0.05,0.75,0.12,0.1,'#6b4520');p(0.35,0.8,0.15,0.12,'#6b4520');p(0.7,0.75,0.12,0.1,'#6b4520');
-      // Bande verte uniquement en haut (≈15% du bloc)
-      p(0,0,1,0.15,'#4db040');
-      // Brins d'herbe courts qui dépassent vers le haut
-      p(0.06,0,0.04,0.1,'#5dc050');p(0.2,0,0.035,0.08,'#65d060');
-      p(0.38,0,0.04,0.09,'#6ad058');p(0.55,0,0.05,0.1,'#55b838');
-      p(0.72,0,0.04,0.08,'#5dc050');p(0.88,0,0.035,0.1,'#60c040');
-      // Lisière irrégulière herbe/terre
-      p(0.13,0.13,0.07,0.04,'#5a7a3a');p(0.29,0.12,0.08,0.04,'#4db040');
-      p(0.47,0.13,0.06,0.04,'#5a7a3a');p(0.63,0.12,0.08,0.04,'#4db040');
-      p(0.80,0.13,0.07,0.04,'#5a7a3a');break;
-    case B.DIRT:
-      p(0,0,1,1,'#7a5230');
-      p(0.1,0.1,0.15,0.12,'#6b4520');p(0.4,0.25,0.12,0.1,'#6b4520');p(0.7,0.15,0.14,0.11,'#6b4520');
-      p(0.2,0.5,0.1,0.14,'#8a6040');p(0.55,0.6,0.15,0.12,'#8a6040');p(0.8,0.45,0.1,0.1,'#8a6040');
-      p(0.05,0.75,0.12,0.1,'#6b4520');p(0.35,0.8,0.15,0.12,'#6b4520');p(0.7,0.75,0.12,0.1,'#6b4520');break;
-    case B.STONE:
-      p(0,0,1,1,'#7a7a80');
-      p(0.1,0.15,0.35,0.3,'#888890');p(0.5,0.05,0.4,0.25,'#888890');
-      p(0.05,0.55,0.4,0.35,'#6a6a70');p(0.5,0.45,0.35,0.45,'#6a6a70');
-      p(0,0,0.02,1,'#909098');p(0,0,1,0.02,'#909098');
-      p(0.98,0,0.02,1,'#5a5a60');p(0,0.98,1,0.02,'#5a5a60');break;
-    case B.SAND:
-      p(0,0,1,1,'#d4b86a');
-      for(let i=0;i<12;i++){const gx=(i*37%89)/100,gy=(i*53%79)/100;p(gx,gy,0.06,0.05,'#c4a858');}
-      for(let i=0;i<8;i++){const gx=(i*61%97)/100,gy=(i*41%83)/100;p(gx,gy,0.04,0.04,'#e4c87a');}break;
-    case B.GRAVEL:
-      p(0,0,1,1,'#7a7878');
-      [{x:.1,y:.1,w:.3,h:.25},{x:.45,y:.05,w:.25,h:.2},{x:.72,y:.12,w:.22,h:.3},{x:.05,y:.45,w:.35,h:.3},{x:.42,y:.5,w:.3,h:.35},{x:.72,y:.5,w:.25,h:.28}].forEach(r=>{
-        p(r.x,r.y,r.w,r.h,'#8a8888');p(r.x,r.y,r.w*.5,r.h*.15,'#9a9898');});break;
-    case B.WOOD:
-      p(0,0,1,1,'#7a5820');
-      p(0,0.05,1,0.03,'#6a4810');p(0,0.25,1,0.03,'#6a4810');p(0,0.48,1,0.03,'#6a4810');
-      p(0,0.7,1,0.03,'#6a4810');p(0,0.9,1,0.03,'#6a4810');
-      p(0.15,0,0.04,1,'#8a6830');p(0.45,0,0.03,1,'#8a6830');p(0.7,0,0.04,1,'#8a6830');
-      p(0.2,0,0.6,0.08,'#5a4010');p(0.3,0,0.4,0.04,'#9a7840');break;
-    case B.LEAVES:
-      p(0,0,1,1,'#2a7020');
-      [{x:.05,y:.05,w:.4,h:.35},{x:.5,y:.1,w:.45,h:.3},{x:.1,y:.45,w:.35,h:.4},{x:.5,y:.5,w:.4,h:.4},{x:.25,y:.2,w:.5,h:.5}].forEach((r,i)=>{
-        p(r.x,r.y,r.w,r.h,i%2?'#38902e':'#1e6018');});
-      p(0.1,0.08,0.15,0.12,'#4aaa38');p(0.55,0.12,0.18,0.1,'#4aaa38');p(0.3,0.55,0.15,0.12,'#4aaa38');break;
-    case B.WATER:
-      p(0,0,1,1,'#1a5da8');
-      p(0,0.1,1,0.08,'#2a72c0');p(0,0.35,1,0.06,'#2a72c0');p(0,0.6,1,0.08,'#2a72c0');p(0,0.82,1,0.06,'#2a72c0');
-      p(0.1,0.06,0.3,0.05,'#3a88d8');p(0.5,0.28,0.35,0.04,'#3a88d8');
-      p(0,0,1,0.04,'rgba(255,255,255,0.25)');break;
-    case B.LAVA:
-      p(0,0,1,1,'#cc3300');
-      p(0.1,0.15,0.3,0.2,'#ff5500');p(0.45,0.05,0.4,0.25,'#ff6600');p(0.05,0.5,0.5,0.3,'#ff4400');
-      p(0.55,0.55,0.35,0.35,'#ff5500');p(0.2,0.35,0.25,0.25,'#ffaa00');p(0.6,0.3,0.2,0.2,'#ffbb00');break;
-    case B.COAL_ORE:oreBlock(ctx,s,'#7a7a80','#111111');break;
-    case B.IRON_ORE:oreBlock(ctx,s,'#7a7a80','#c07a50');break;
-    case B.GOLD_ORE:oreBlock(ctx,s,'#7a7a80','#f5c518');break;
-    case B.DIAMOND_ORE:oreBlock(ctx,s,'#7a7a80','#00e5ff');break;
-    case B.BEDROCK:
-      p(0,0,1,1,'#1a1a1a');
-      [{x:.05,y:.08,w:.4,h:.3},{x:.5,y:.05,w:.42,h:.25},{x:.08,y:.5,w:.38,h:.38},{x:.52,y:.45,w:.4,h:.4}].forEach(r=>{
-        p(r.x,r.y,r.w,r.h,'#2a2a2a');p(r.x,r.y,r.w,0.06,'#333');});break;
-    case B.PLANKS:
-      p(0,0,1,1,'#c09040');
-      p(0,0,1,0.02,'#b07830');p(0,0.5,1,0.02,'#b07830');
-      p(0.1,0,0.03,0.5,'#d0a850');p(0.4,0,0.03,0.5,'#d0a850');p(0.7,0,0.03,0.5,'#d0a850');
-      p(0.15,0.5,0.03,0.5,'#d0a850');p(0.5,0.5,0.03,0.5,'#d0a850');p(0.8,0.5,0.03,0.5,'#d0a850');break;
-    case B.COBBLE:
-      p(0,0,1,1,'#686868');
-      [{x:.04,y:.04,w:.44,h:.44},{x:.52,y:.04,w:.44,h:.44},{x:.04,y:.52,w:.44,h:.44},{x:.52,y:.52,w:.44,h:.44}].forEach(r=>{
-        p(r.x,r.y,r.w,r.h,'#787878');p(r.x,r.y,r.w,0.06,'#888888');p(r.x,r.y+r.h-0.06,r.w,0.06,'#585858');});break;
-    case B.GLASS:
-      p(0,0,1,1,'rgba(150,210,255,0.35)');
-      p(0,0,1,0.06,'rgba(200,240,255,0.6)');p(0,0,0.06,1,'rgba(200,240,255,0.6)');
-      p(0.06,0.06,0.88,0.88,'rgba(120,190,255,0.15)');
-      p(0.94,0.06,0.06,0.88,'rgba(80,140,200,0.4)');p(0.06,0.94,0.94,0.06,'rgba(80,140,200,0.4)');break;
-    case B.BRICK:
-      p(0,0,1,1,'#963020');
-      p(0,0.24,1,0.04,'#c0a070');p(0,0.5,1,0.04,'#c0a070');p(0,0.74,1,0.04,'#c0a070');
-      p(0,0,0.04,0.25,'#c0a070');p(0.5,0,0.04,0.25,'#c0a070');
-      p(0.25,0.5,0.04,0.25,'#c0a070');p(0.75,0.5,0.04,0.25,'#c0a070');
-      p(0,0.28,1,0.22,'#b03828');p(0,0.78,1,0.22,'#b03828');
-      p(0.04,0.02,0.44,0.22,'#a02818');p(0.54,0.02,0.44,0.22,'#a02818');
-      p(0.29,0.52,0.44,0.22,'#a02818');p(0.79,0.52,0.19,0.22,'#a02818');p(0.04,0.52,0.23,0.22,'#a02818');break;
-    case B.TORCH:
-      p(0.4,0.7,0.2,0.3,'#9a6820');p(0.38,0.5,0.24,0.22,'#8a5810');
-      p(0.42,0.35,0.16,0.18,'#ffcc00');p(0.44,0.15,0.12,0.22,'#ff8800');p(0.46,0.05,0.08,0.12,'#ff4400');
-      p(0.44,0.28,0.12,0.1,'#ffee88');break;
-    case B.CHEST:
-      p(0,0,1,1,'#9a6830');p(0,0,1,0.5,'#b07840');p(0,0,1,0.04,'#d09050');
-      p(0.1,0.1,0.8,0.35,'#c09050');
-      p(0.35,0.42,0.3,0.12,'#d4a030');p(0.4,0.38,0.2,0.2,'#f5c518');p(0.44,0.42,0.12,0.12,'#111');
-      p(0.1,0.55,0.8,0.35,'#a07030');p(0,0.48,1,0.06,'#666');break;
-    case B.CRAFTING_TABLE:
-      p(0,0,1,1,'#9a6830');p(0,0,1,0.5,'#7a4a20');p(0.05,0.05,0.9,0.4,'#c8a060');
-      p(0.1,0.1,0.35,0.06,'#aaa');p(0.1,0.1,0.06,0.3,'#aaa');
-      p(0.55,0.08,0.35,0.06,'#c0875a');p(0.82,0.08,0.06,0.3,'#c0875a');
-      p(0.1,0.22,0.3,0.06,'#888');break;
-    case B.FURNACE:
-      p(0,0,1,1,'#666');p(0.08,0.08,0.84,0.84,'#555');p(0.2,0.12,0.6,0.35,'#3a3a3a');
-      p(0.3,0.55,0.4,0.3,'#cc4400');p(0.35,0.6,0.3,0.2,'#ff7700');p(0.4,0.65,0.2,0.1,'#ffcc00');
-      p(0,0,0.04,1,'#888');p(0,0,1,0.04,'#888');break;
-    case B.BED:
-      p(0,0,1,1,'#cc3333');p(0,0,1,0.18,'#eeeeee');
-      p(0.05,0.22,0.9,0.6,'#dd4444');p(0.05,0.22,0.2,0.6,'#eeeeee');
-      p(0.08,0.24,0.16,0.56,'#dddddd');break;
-    case B.OBSIDIAN:
-      p(0,0,1,1,'#1a0a28');
-      p(0.1,0.1,0.4,0.35,'#2a1a38');p(0.52,0.08,0.38,0.3,'#2a1a38');
-      p(0.08,0.52,0.35,0.4,'#221030');p(0.5,0.5,0.42,0.42,'#221030');
-      p(0.2,0.15,0.12,0.12,'#4a2a58');p(0.6,0.6,0.12,0.12,'#4a2a58');break;
-    case B.SNOW:
-      p(0,0,1,1,'#e8f0ff');p(0,0,1,0.15,'#ffffff');
-      p(0.1,0.3,0.3,0.08,'#d0ddf0');p(0.5,0.5,0.35,0.08,'#d0ddf0');p(0.15,0.65,0.4,0.06,'#d0ddf0');break;
-    case B.ICE:
-      p(0,0,1,1,'rgba(100,160,255,0.8)');
-      p(0.05,0.05,0.4,0.3,'rgba(180,220,255,0.5)');p(0.55,0.55,0.35,0.35,'rgba(180,220,255,0.5)');
-      p(0,0,0.06,1,'rgba(220,240,255,0.7)');p(0,0,1,0.06,'rgba(220,240,255,0.7)');break;
-    case B.CACTUS:
-      p(0.2,0,0.6,1,'#2a8a20');p(0.25,0,0.5,1,'#3aaa30');
-      p(0.2,0,0.03,1,'#1a6010');p(0.77,0,0.03,1,'#1a6010');
-      p(0,0.3,0.2,0.06,'#2a8a20');p(0.8,0.6,0.2,0.06,'#2a8a20');
-      p(0.18,0.28,0.04,0.1,'#2a8a20');p(0.78,0.58,0.04,0.1,'#2a8a20');break;
-    case B.SANDSTONE:
-      p(0,0,1,1,'#c8a850');
-      p(0,0,1,0.06,'#d8b860');p(0,0.5,1,0.06,'#b89840');
-      p(0,0.25,1,0.03,'#b89840');p(0,0.75,1,0.03,'#b89840');
-      p(0.1,0.08,0.8,0.14,'#d8c070');p(0.1,0.58,0.8,0.14,'#d8c070');break;
-    case B.CLAY:
-      p(0,0,1,1,'#9090b0');p(0.1,0.1,0.8,0.8,'#a0a0c0');p(0,0,0.06,1,'#b0b0d0');p(0,0,1,0.06,'#b0b0d0');break;
-    case B.MOSSY:
-      p(0,0,1,1,'#607060');
-      [{x:.04,y:.04,w:.44,h:.44},{x:.52,y:.04,w:.44,h:.44},{x:.04,y:.52,w:.44,h:.44},{x:.52,y:.52,w:.44,h:.44}].forEach(r=>{
-        p(r.x,r.y,r.w,r.h,'#708070');p(r.x,r.y,r.w,0.06,'#809080');});
-      p(0.1,0.05,0.12,0.08,'#4a7a3a');p(0.55,0.55,0.15,0.1,'#4a7a3a');p(0.3,0.3,0.1,0.12,'#3a6a2a');break;
-    case B.BOOKSHELF:
-      p(0,0,1,1,'#c09040');
-      p(0,0,1,0.02,'#a07020');p(0,0.5,1,0.02,'#a07020');p(0,0.98,1,0.02,'#a07020');
-      [{x:.04,c:'#3a3ab0'},{x:.14,c:'#b03a3a'},{x:.24,c:'#3ab03a'},{x:.34,c:'#b0b03a'},{x:.44,c:'#3ab0b0'},{x:.54,c:'#b03ab0'},{x:.64,c:'#884400'},{x:.74,c:'#3a3ab0'},{x:.84,c:'#b03a3a'}].forEach(bk=>{
-        p(bk.x,0.04,0.08,0.44,bk.c);p(bk.x,0.52,0.08,0.44,bk.c);});break;
-    case B.WOOL:
-      p(0,0,1,1,'#cc5555');
-      for(let r=0;r<5;r++)for(let c=0;c<5;c++){p(c*0.2+0.01,r*0.2+0.01,0.18,0.18,r%2===c%2?'#dd6666':'#bb4444');}break;
-    case B.TNT:
-      p(0,0,1,1,'#cc2222');p(0,0,1,0.2,'#eeeeee');p(0,0.8,1,0.2,'#eeeeee');
-      p(0.15,0.22,0.7,0.56,'#cc2222');p(0.1,0.3,0.8,0.4,'#eeeeee');
-      p(0.15,0.35,0.15,0.3,'#cc2222');p(0.31,0.35,0.38,0.3,'#cc2222');p(0.7,0.35,0.15,0.3,'#cc2222');break;
-    case B.LADDER:
-      p(0,0.04,0.08,0.92,'#9a6820');p(0.92,0.04,0.08,0.92,'#9a6820');
-      [0.15,0.38,0.62,0.85].forEach(y=>p(0.08,y,0.84,0.1,'#b07830'));break;
-    default:
-      p(0,0,1,1,'#888');p(0,0,0.06,1,'#aaa');p(0,0,1,0.06,'#aaa');
+// ══════════════════════════════════════════════════════════════
+//  TEXTURES PIXEL ART 16×16
+//  Chaque lettre = une couleur de palette
+//  data = string de 256 chars (16 rangées × 16 cols, de haut en bas)
+// ══════════════════════════════════════════════════════════════
+function tex(ctx,s,P,d){
+  const ps=s/16;
+  for(let i=0;i<256;i++){
+    const c=P[d[i]];if(!c)continue;
+    ctx.fillStyle=c;
+    ctx.fillRect(Math.floor((i%16)*ps),Math.floor(~~(i/16)*ps),Math.ceil(ps),Math.ceil(ps));
   }
-  ctx.fillStyle='rgba(0,0,0,0.08)';ctx.fillRect(s-2,0,2,s);ctx.fillRect(0,s-2,s,2);
-  ctx.fillStyle='rgba(255,255,255,0.12)';ctx.fillRect(0,0,2,s);ctx.fillRect(0,0,s,2);
 }
 
-function oreBlock(ctx,s,base,ore){
+function drawBlockToCanvas(ctx,id,s){
+  ctx.clearRect(0,0,s,s);
+
+  // ── HERBE ──────────────────────────────────────────────
+  // Top 4 rangées = herbe verte, reste = terre brune
+  if(id===B.GRASS){
+    tex(ctx,s,{
+      A:'#4c7a1e',B:'#578a22',C:'#629628',D:'#3d6618',E:'#6daa2e',
+      a:'#8b5a2b',b:'#7a4e22',c:'#6b3f18',d:'#9a6535',e:'#5c3d14',f:'#a87040',g:'#7f5228',
+    },
+    'ABCBABDCBABCBABC'+ // ligne 0
+    'BCABCBABDCABCBAB'+ // 1
+    'CABDCABCBABCBDAB'+ // 2
+    'BCcbaDcbaBcbaDcb'+ // 3 — transition herbe/terre
+    'abcbabdcbabcbabc'+ // 4
+    'cabdcabcbabcbdab'+ // 5
+    'abcbabdcbabcbabc'+ // 6
+    'bcabcbabdcabcbab'+ // 7
+    'dcbabcbabdcabcba'+ // 8
+    'abcbabdcbabcbabc'+ // 9
+    'cabdcabcbabcbdab'+ // 10
+    'abcbabdcbabcbabc'+ // 11
+    'bcabcbabdcabcbab'+ // 12
+    'dcbaecbabdcabcba'+ // 13
+    'abcbabdcbabcbafc'+ // 14
+    'gfcbabdcbabcbabc'  // 15
+    );return;
+  }
+
+  // ── TERRE ──────────────────────────────────────────────
+  if(id===B.DIRT){
+    tex(ctx,s,{
+      a:'#8b5a2b',b:'#7a4e22',c:'#6b3f18',d:'#9a6535',e:'#5c3d14',f:'#a87040',g:'#7f5228',
+    },
+    'abcbabdcbabcbabc'+
+    'cabdcabcbabcbdab'+
+    'abcbabdcbabcbabc'+
+    'bcabcbabdcabcbab'+
+    'dcbabcbabdcabcba'+
+    'abcbabdcbabcbabc'+
+    'cabdcabcbabcbdab'+
+    'abcbabdcbabcbabc'+
+    'bcabcbabdcabcbab'+
+    'dcbaecbabdcabcba'+
+    'abcbabdcbabcbafc'+
+    'gfcbabdcbabcbabc'+
+    'abcbabdcbabcbabc'+
+    'cabdcabcbabcbdab'+
+    'abcbabdcbabcbabc'+
+    'bcabcbabdcabcbab'
+    );return;
+  }
+
+  // ── PIERRE ──────────────────────────────────────────────
+  if(id===B.STONE){
+    tex(ctx,s,{
+      A:'#797979',B:'#828282',C:'#707070',D:'#696969',E:'#888888',F:'#606060',G:'#5a5a5a',
+    },
+    'ABABABABABABABABD'[0]+
+    'AABBAABBABABCAAB'+
+    'ABCFABABABABBAAB'+
+    'BAABABABABABABBB'+
+    'ABABABDABABCABAB'+
+    'AABBAABABABABAAB'+
+    'ABABABABCFABABAB'+
+    'BAABABABABABABBB'+
+    'ABABABABABDAABAB'+
+    'AABBAABBABABCAAB'+
+    'ABCFABABABABBAAB'+
+    'BAABABABABABABBB'+
+    'ABABABDABABCABAB'+
+    'AABBAABABABABAAB'+
+    'ABABABABCFABABAB'+
+    'BAABABABABABABBB'
+    );
+    // Fissures
+    const ps=s/16;
+    ctx.fillStyle='#555';
+    [[3,0,1,3],[8,2,1,2],[11,5,2,1],[1,8,1,3],[9,7,1,2],[13,1,1,4],[5,11,1,3],[12,12,2,2]].forEach(([c,r,w,h])=>{
+      ctx.fillRect(Math.floor(c*ps),Math.floor(r*ps),Math.ceil(w*ps),Math.ceil(h*ps));
+    });
+    return;
+  }
+
+  // ── SABLE ──────────────────────────────────────────────
+  if(id===B.SAND){
+    tex(ctx,s,{
+      A:'#dbc06a',B:'#c9ae58',C:'#e8cc76',D:'#d0b45e',E:'#ccaa52',F:'#dfbc68',
+    },
+    'AABABCABABDABAAB'+
+    'BCABABABABCBAABC'+
+    'ABABDABABCABABAB'+
+    'CABABABABABDABAC'+
+    'ABABCABABABABCAB'+
+    'DABABABCABABABAD'+
+    'ABABABABDABABCAB'+
+    'BCABABABABCBAABC'+
+    'ABABDABABCABABAB'+
+    'CABABABABABDABAC'+
+    'ABABCABABABABCAB'+
+    'DABABABCABABABAD'+
+    'ABABABABDABABCAB'+
+    'BCABABABABCBAABC'+
+    'ABABDABABCABABAB'+
+    'CABABABABABDABAC'.replace(/D/g,'F')
+    );return;
+  }
+
+  // ── GRAVIER ──────────────────────────────────────────────
+  if(id===B.GRAVEL){
+    tex(ctx,s,{
+      A:'#7a7876',B:'#8c8a88',C:'#9a9896',D:'#686664',E:'#6e6c6a',F:'#b0aeac',
+    },
+    'EEBBBBEEDDDDEEBB'+
+    'EBBCCCBBEDDBCCBB'+
+    'BBBCCCBBEDBBCCCB'+
+    'BBBBBBBBEDBBBCBB'+
+    'EEBBBBBBEDDDDBBB'+
+    'EBBBBBBBBBBBBBBE'+
+    'BBBBBBBBBBBBBBBE'+
+    'BBBBBBBBBBBBBBBE'+
+    'EEBBBBEEDDDDEEBB'+
+    'EBBCCCBBEDDBCCBB'+
+    'BBBCCCBBEDBBCCCB'+
+    'BBBBBBBBEDBBBCBB'+
+    'EEBBBBBBEDDDDBBB'+
+    'EBBBBBBBBBBBBBBE'+
+    'BBBBBBBBBBBBBBBE'+
+    'BBBBBBBBBBBBBBBE'
+    );return;
+  }
+
+  // ── BOIS (tronc) ──────────────────────────────────────────────
+  if(id===B.WOOD){
+    tex(ctx,s,{
+      A:'#4e3108',B:'#5a3c0a',C:'#3e2606',D:'#6b4010',
+      a:'#a06020',b:'#8c5418',c:'#b46c24',d:'#986018',e:'#aa641e',
+    },
+    'AABBBBBBBBBBBBA A'.replace(/ /g,'')+
+    'ABBBBBBBBBBBBBA A'.replace(/ /g,'')+
+    'ABaaaaaaaaaaaaba'+
+    'ABababababababba'+
+    'ABbaababababaaba'+
+    'ABababababababba'+
+    'ABaaabababaaabba'+
+    'ABababababababba'+
+    'ABbaababababaaba'+
+    'ABababababababba'+
+    'ABaaaaaaaaaaaaba'+
+    'ABababababababba'+
+    'ABbaababababaaba'+
+    'ABBBBBBBBBBBBBBA'+
+    'AABBBBBBBBBBBBAA'+
+    'AAAAAAAAAAAAAAAА'.replace('А','A')
+    );return;
+  }
+
+  // ── FEUILLES ──────────────────────────────────────────────
+  if(id===B.LEAVES){
+    tex(ctx,s,{
+      A:'#2d6e1a',B:'#1e5210',C:'#388024',D:'#286018',E:'#3a8828',F:'#4a9e30',
+      ' ': null,
+    },
+    ' ABCABCABCABCAB '+
+    'ABCABCABCABCABCA'+
+    'BCABCABCABCABCAB'+
+    'CABCABCABCABCABC'+
+    'ABCABCABCABCABCA'+
+    'BCABCABCABCABCAB'+
+    'CABCABCABCABCABC'+
+    'ABCABCABCABCABCA'+
+    'BCABCABCABCABCAB'+
+    'CABCABCABCABCABC'+
+    'ABCABCABCABCABCA'+
+    'BCABCABCABCABCAB'+
+    'CABCABCABCABCABC'+
+    'ABCABCABCABCABCA'+
+    'BCABCABCABCABCAB'+
+    ' ABCABCABCABCAB '
+    );return;
+  }
+
+  // ── EAU ──────────────────────────────────────────────
+  if(id===B.WATER){
+    tex(ctx,s,{
+      A:'#1a4fa8',B:'#1c5ab4',C:'#2468c8',D:'#4488d8',E:'#1848a0',F:'#0e3c8c',
+    },
+    'ADADADBDADADADBD'+
+    'ABABABABABABABABC'[0]+
+    'BABABABABABABABAB'[0]+
+    'ABABABABABABABABC'[0]+
+    'DADADBDADADADBDA'+
+    'ABABABABABABABABC'[0]+
+    'BABABABABABABABAB'[0]+
+    'ABABABABABABABABC'[0]+
+    'ADADADBDADADADBD'+
+    'ABABABABABABABABC'[0]+
+    'BABABABABABABABAB'[0]+
+    'ABABABABABABABABC'[0]+
+    'DADADBDADADADBDA'+
+    'ABABABABABABABABC'[0]+
+    'BABABABABABABABAB'[0]+
+    'ABABABABABABABABC'[0]
+    );return;
+  }
+
+  // ── LAVE ──────────────────────────────────────────────
+  if(id===B.LAVA){
+    tex(ctx,s,{
+      A:'#c83200',B:'#e04000',C:'#f05000',D:'#d83800',
+      E:'#ff8800',F:'#ffaa00',G:'#ffcc00',H:'#b82800',
+    },
+    'AABBDAABBDAABBDA'+
+    'BBAABBDAABBDAABB'+
+    'ABEFBDAABBDAABBD'+
+    'BBAAEBDAABBDAAEB'+
+    'AABBDGABBDAABBDA'+
+    'BBAFBDAABBDAAFBB'+
+    'ABBBDAAGBDAABBBD'+
+    'BBAABBDAABBDAABB'+
+    'AABBDAABBGAABBDA'+
+    'BBAABBDAFBBDAABB'+
+    'ABBBDAABBDAGBBBD'+
+    'BBAAEBDAABBDAAEB'+
+    'AABBDAABBDAABBDA'+
+    'BBAABBDAABBDAABB'+
+    'ABEFBDAABBDAABBD'+
+    'BBAAEBDAABBDAAEB'
+    );return;
+  }
+
+  // ── BEDROCK ──────────────────────────────────────────────
+  if(id===B.BEDROCK){
+    tex(ctx,s,{
+      A:'#1a1a1a',B:'#222222',C:'#2e2e2e',D:'#383838',E:'#111111',F:'#333333',
+    },
+    'AABBAACCAABBAABB'+
+    'ABDDABABCCABDDAB'+
+    'BADDDDABBADDDDAB'+
+    'AABBAADDDAABBAAB'+
+    'BBAABBAABBCCBBAA'+
+    'AABBAABBDDAABBAA'+
+    'ABDDDABBBDDDDABB'+
+    'BADDABABDDABABBA'+
+    'AABBAACCAABBAABB'+
+    'ABDDABABCCABDDAB'+
+    'BADDDDABBADDDDAB'+
+    'AABBAADDDAABBAAB'+
+    'BBAABBAABBCCBBAA'+
+    'AABBAABBDDAABBAA'+
+    'ABDDDABBBDDDDABB'+
+    'BADDABABDDABABBA'
+    );return;
+  }
+
+  // ── PLANCHES ──────────────────────────────────────────────
+  if(id===B.PLANKS){
+    tex(ctx,s,{
+      A:'#a87640',B:'#b88848',C:'#986830',D:'#7a5020',E:'#c09858',F:'#8a5e28',
+    },
+    'AAABBBBBBBBBBAAA'+
+    'AAABCBBBBCBBBAAA'+
+    'AAABBBBBBBBBBAAA'+
+    'AAABBBBBBBBBBAAA'+
+    'DDDDDDDDDDDDDDDD'+
+    'DDDDDDDDDDDDDDDD'+
+    'AAABBBBBBBBBBAAA'+
+    'AAABCBBBBCBBBAAA'+
+    'AAABBBBBBBBBBAAA'+
+    'AAABBBBBBBBBBAAA'+
+    'DDDDDDDDDDDDDDDD'+
+    'DDDDDDDDDDDDDDDD'+
+    'EAABBBBBBBBBBAAE'+
+    'EAABCBBBBCBBBAAE'+
+    'EAABBBBBBBBBBAAE'+
+    'EAABBBBBBBBBBAAE'
+    );return;
+  }
+
+  // ── COBBLESTONE ──────────────────────────────────────────────
+  if(id===B.COBBLE){
+    tex(ctx,s,{
+      A:'#787878',B:'#686868',C:'#888888',D:'#585858',E:'#505050',F:'#909090',
+    },
+    'BBEEEEBBBBEEEEBB'+
+    'BFFFBBBBBBFFFBBB'+
+    'BFFFBBBBBBFFFBBB'+
+    'BFFFBBBBBBFFFBBB'+
+    'BFFFBBBBBBFFFBBB'+
+    'BFFFBBBBBBFFFBBB'+
+    'BEEEEEBBBEEEEEBB'+
+    'BBBBBBBBBBBBBBB '+
+    'BBEEEEBBBBEEEEBB'+
+    'BFFFBBBBBBFFFBBB'+
+    'BFFFBBBBBBFFFBBB'+
+    'BFFFBBBBBBFFFBBB'+
+    'BFFFBBBBBBFFFBBB'+
+    'BFFFBBBBBBFFFBBB'+
+    'BEEEEEBBBEEEEEBB'+
+    'BBBBBBBBBBBBBBBB'
+    );return;
+  }
+
+  // ── VERRE ──────────────────────────────────────────────
+  if(id===B.GLASS){
+    tex(ctx,s,{
+      A:'#c8e4f8',B:'#dceeff',C:'rgba(180,220,255,0.18)',D:'rgba(220,240,255,0.55)',
+      E:'rgba(200,230,255,0.08)',
+    },
+    'AAAAAAAAAAAAAAAA'+
+    'ABBBBBBBBBBBBBBA'+
+    'ABDDBBBBBBBBBBBA'+
+    'ABDBBBBBBBBBBBBA'+
+    'ABBBBBBBBBBBBBBA'+
+    'ABBBBBBBBBBBBBBA'+
+    'ABBBBBBBBBBBBBBA'+
+    'ABBBBBBBBBBBBBBA'+
+    'ABBBBBBBBBBBBBBA'+
+    'ABBBBBBBBBBBBBBA'+
+    'ABBBBBBBBBBBBBBA'+
+    'ABBBBBBBBBBBBBBA'+
+    'ABBBBBBBBBBBBBBA'+
+    'ABBBBBBBBBBBBBBA'+
+    'ABBBBBBBBBBBBBBA'+
+    'AAAAAAAAAAAAAAAA'
+    );return;
+  }
+
+  // ── BRIQUE ──────────────────────────────────────────────
+  if(id===B.BRICK){
+    tex(ctx,s,{
+      A:'#b0532a',B:'#c86040',C:'#8e3a18',D:'#c8a478',E:'#9a3820',
+    },
+    'DDDDDDDDDDDDDDDD'+
+    'DAAAAAAADDAAAAAD'+
+    'DABABAABDABABAAD'+
+    'DAAAAAAADDAAAAAD'+
+    'DDDDDDDDDDDDDDDD'+
+    'DDAAAAAAAADDAAAD'+
+    'DDABABAABDABABBD'+
+    'DDAAAAAAAADDAAAD'+
+    'DDDDDDDDDDDDDDDD'+
+    'DAAAAAAADDAAAAAD'+
+    'DABABAABDABABAAD'+
+    'DAAAAAAADDAAAAAD'+
+    'DDDDDDDDDDDDDDDD'+
+    'DDAAAAAAAADDAAAD'+
+    'DDABABAABDABABBD'+
+    'DDAAAAAAAADDAAAD'
+    );return;
+  }
+
+  // ── TORCHE ──────────────────────────────────────────────
+  if(id===B.TORCH){
+    tex(ctx,s,{
+      S:'#7c5218',s:'#6b4710',F:'#ffcc00',f:'#ffaa00',O:'#ff8800',o:'#ff6600',W:'#ffffff',
+    },
+    '                '+
+    '        f       '+
+    '       fOf      '+
+    '      fWOOf     '+
+    '       fFf      '+
+    '        F       '+
+    '        F       '+
+    '        S       '+
+    '        S       '+
+    '        S       '+
+    '        S       '+
+    '        S       '+
+    '        S       '+
+    '        S       '+
+    '        S       '+
+    '                '
+    );return;
+  }
+
+  // ── COFFRE ──────────────────────────────────────────────
+  if(id===B.CHEST){
+    tex(ctx,s,{
+      A:'#c07840',B:'#a06030',C:'#8b5a2b',D:'#c8a030',E:'#000000',F:'#4a2a0a',
+    },
+    'FFFFFFFFFFFFFFFF'+
+    'FBBBBBBBBBBBBBBF'+
+    'FBBBBBBBBBBBBBAF'+
+    'FBBBBBBBBBBBBBAF'+
+    'FBBBDDDDBBBBBBAF'+
+    'FBBBDEEDBBBBBAF '+
+    'FBBBDDDDBBBBBBAF'+
+    'FFFFFFFFFFFFFFFF'+
+    'FAAAAAAAAAAAAAFF'+
+    'FAAAAAAAAAAAAAAف'.replace('ف','F')+
+    'FAAAAAAAAAAAAAFF'+
+    'FAAAAAAAAAAAAAFF'+
+    'FAAAAAAAAAAAAAFF'+
+    'FAAAAAAAAAAAAAFF'+
+    'FAAAAAAAAAAAAAFF'+
+    'FFFFFFFFFFFFFFFF'
+    );return;
+  }
+
+  // ── ÉTABLI ──────────────────────────────────────────────
+  if(id===B.CRAFTING_TABLE){
+    tex(ctx,s,{
+      A:'#c09040',B:'#a07030',C:'#6a4820',D:'#5a3010',E:'#8a6028',F:'#d0a050',
+    },
+    'FFFFFFFFCCCCCCCC'+
+    'FFFFFFCCDDCCCCCC'+
+    'FFFFFFCDDDCFFFFF'+
+    'FFFFFFCCDDCCFFFF'+
+    'FFFFFFCCCCCCFFFF'+
+    'FFFFFFCCCCCCFFFF'+
+    'FFFFFFCCCCCCFFFF'+
+    'CCCCCCCCCCCCCCCC'+
+    'CCCCCCCCCCCCCCCC'+
+    'AAAAAAAACCCCCCCC'+
+    'AAAAAAAAADCCCCCC'+
+    'AAAAAAAACDDDCCCC'+
+    'AAAAAAAAAADCCCCC'+
+    'AAAAAAAAACCCCBBB'+
+    'AAAAAAAAACCBBBBB'+
+    'AAAAAAAAACCBBBBB'
+    );return;
+  }
+
+  // ── FOUR ──────────────────────────────────────────────
+  if(id===B.FURNACE){
+    tex(ctx,s,{
+      S:'#7a7a7a',s:'#888888',D:'#3a3a3a',F:'#cc4400',f:'#ff7700',G:'#ffcc00',
+      L:'#606060',
+    },
+    'SsSSsSSsSSSsSSsS'+
+    'sSsSsSSSsSsSsSsS'+
+    'SsSSSsSSsSSSsSsS'+
+    'sSSSSSSSSSSSSSSs'+
+    'SDDDDDDDDDDDDDS S'.replace(' ','').slice(0,16)+
+    'SDDDDDDDDDDDDDS '+
+    'SDDDDDDDDDDDDDS '+
+    'SDDDDDDDDDDDDDDS'+
+    'SffFFFFFFFFFffDS'+
+    'SfGGGGGGGGGGGfDS'+
+    'SsSSSSSSSSSSsDS '+
+    'SsSSSSSSSSSSSDS '+
+    'SsSSSSSSSSSSsDS '+
+    'SsSSSSSSSSSSSDS '+
+    'SsSSSSSSSSSSsDS '+
+    'SSSSSSSSSSSSSSSS'
+    );return;
+  }
+
+  // ── LIT ──────────────────────────────────────────────
+  if(id===B.BED){
+    tex(ctx,s,{
+      W:'#e8e8e8',w:'#d0d0d0',R:'#cc3333',r:'#aa2222',B:'#6b4510',b:'#8b5a2b',
+    },
+    'BBBBBBBBBBBBBBBB'+
+    'BwwwwwbRRRRRRBbb'+
+    'BwwwwwbRRRRRRBbb'+
+    'BwwwwwbRRRRRRBbb'+
+    'BwWwwwbRRRRrRBbb'+
+    'BwWwwwbRRRRrRBbb'+
+    'BwwwwwbRRRRRRBbb'+
+    'BBBBBBBBBBBBBBBB'+
+    'BBBBBBBBBBBBBBBB'+
+    'BrRRRRRRRRRRRRBb'+
+    'BrRRRRRRRRRRRRBb'+
+    'BrRRRRRRRRRRRRBb'+
+    'BrRRRRRRRRRRRRBb'+
+    'BBBBBBBBBBBBBBBB'+
+    'BBBBBBBBBBBBBBBB'+
+    'BBBBBBBBBBBBBBBB'
+    );return;
+  }
+
+  // ── OBSIDIENNE ──────────────────────────────────────────────
+  if(id===B.OBSIDIAN){
+    tex(ctx,s,{
+      A:'#150820',B:'#1c0f2a',C:'#110618',D:'#3a1a50',E:'#2e1440',F:'#221030',
+    },
+    'AABBAABBCAABBAAB'+
+    'ABDDBBABCBBDDBBA'+
+    'BADDDDABABDDDDAB'+
+    'CAADDDDBBAADDDD '+
+    'AABBAAEFBBCCBBAA'+
+    'BABBAABBDDAABBAA'+
+    'ABDDBAABBBDDBBAB'+
+    'BADDABABDDABABBA'+
+    'AABBAABBCAABBAAB'+
+    'ABDDBBABCBBDDBBA'+
+    'BADDDDABABDDDDAB'+
+    'CAADDDDBBADDDDCA'+
+    'AABBAAEFBBCCBBAA'+
+    'BABBAABBDDAABBAA'+
+    'ABDDBAABBBDDBBAB'+
+    'BADDABABDDABABBA'
+    );return;
+  }
+
+  // ── NEIGE ──────────────────────────────────────────────
+  if(id===B.SNOW){
+    tex(ctx,s,{
+      A:'#ffffff',B:'#e8eeff',C:'#d8e8ff',D:'#f0f4ff',
+    },
+    'AAAAAAAADAAAAAD '+
+    'AADAADAAAAADAAAD'+
+    'AAAAAAAAAAAAAAAA'+
+    'DAADAADAAADAADAA'+
+    'AAAAAAAAAAAAAAAD'+
+    'AAADAAADAAAAADAA'+
+    'AAAAAAAAAAAAAAAA'+
+    'AADAADAAAAADAAAD'+
+    'AAAAAAAAAAAAAAAA'+
+    'DAADAADAAADAADAA'+
+    'AAAAAAAAAAAAAAAD'+
+    'AAADAAADAAAAADAA'+
+    'AAAAAAAAAAAAAAAA'+
+    'AADAADAAAAADAAAD'+
+    'AAAAAAAAAAAAAAAA'+
+    'DAADAADAAADAADAA'
+    );return;
+  }
+
+  // ── GLACE ──────────────────────────────────────────────
+  if(id===B.ICE){
+    tex(ctx,s,{
+      A:'rgba(88,148,255,0.85)',B:'rgba(140,190,255,0.7)',C:'rgba(200,225,255,0.5)',D:'rgba(60,120,220,0.9)',
+    },
+    'AAAAAAAAAAAAAAAA'+
+    'ABBBBBBBBBBBBBBA'+
+    'ABCCBBBBBBBBBBBA'+
+    'ABCBBBBBBBBBBBA '+
+    'ABBBBBBBBBBBBBA '+
+    'ABBBBBBBDBBBBBA '+
+    'ABBBBBBBDBBBBA  '+
+    'ABBBBBBBDBBBBBA '+
+    'ABBBBBBBBBBBBBBA'+
+    'ABBBBBDDDDBBBBBA'+
+    'ABBBBBBBBBBBBBBA'+
+    'ABBBBBBBBBBBBBBA'+
+    'ABBBBBBBBBBBBBBA'+
+    'ABBBBBBBBBBBBBBA'+
+    'ABBBBBBBBBBBBBBA'+
+    'AAAAAAAAAAAAAAAA'
+    );return;
+  }
+
+  // ── CACTUS ──────────────────────────────────────────────
+  if(id===B.CACTUS){
+    tex(ctx,s,{
+      A:'#3a8a28',B:'#2a7018',C:'#48a030',D:'#1e5c10',
+    },
+    '   BAAACAAAB    '+
+    '   BAAACAAAB    '+
+    'DB BAAACAAAB  BD'+
+    'AA BAAACAAAB  AA'+
+    '   BAAACAAAB    '+
+    '   BAAACAAAB    '+
+    '   BAAACAAAB    '+
+    '   BAAACAAAB    '+
+    'DB BAAACAAAB  BD'+
+    'AA BAAACAAAB  AA'+
+    '   BAAACAAAB    '+
+    '   BAAACAAAB    '+
+    '   BAAACAAAB    '+
+    '   BAAACAAAB    '+
+    '   BAAACAAAB    '+
+    '   BAAACAAAB    '
+    );return;
+  }
+
+  // ── GRÈS ──────────────────────────────────────────────
+  if(id===B.SANDSTONE){
+    tex(ctx,s,{
+      A:'#c8a850',B:'#d8ba60',C:'#b89038',D:'#e8cc78',E:'#a88030',
+    },
+    'BBBBBBBBBBBBBBBB'+
+    'BAABABABABABABAB'+
+    'BAABABABABABABAB'+
+    'BAABABABABABABAB'+
+    'CCCCCCCCCCCCCCCC'+
+    'BAABABABABABABAB'+
+    'BAABABABABABABAB'+
+    'BAABABABABABABAB'+
+    'CCCCCCCCCCCCCCCC'+
+    'BAABABABABABABAB'+
+    'BAABABABABABABAB'+
+    'BAABABABABABABAB'+
+    'CCCCCCCCCCCCCCCC'+
+    'BAABABABABABABAB'+
+    'BAABABABABABABAB'+
+    'CCCCCCCCCCCCCCCC'
+    );return;
+  }
+
+  // ── ARGILE ──────────────────────────────────────────────
+  if(id===B.CLAY){
+    tex(ctx,s,{
+      A:'#9090b0',B:'#a0a0c0',C:'#8888a8',D:'#b0b0d0',
+    },
+    'ABABABABABABABAB'+
+    'BABABABABABABABA'+
+    'ABABABABABABABAB'+
+    'BABABABABABABABA'+
+    'ABABABABABABABAB'+
+    'BABABABABABABABA'+
+    'ABABABABABABABAB'+
+    'BABABABABABABABA'+
+    'ABABABABABABABAB'+
+    'BABABABABABABABA'+
+    'ABABABABABABABAB'+
+    'BABABABABABABABA'+
+    'ABABABABABABABAB'+
+    'BABABABABABABABA'+
+    'ABABABABABABABAB'+
+    'BABABABABABABABA'
+    );return;
+  }
+
+  // ── COBBLE MOUSSU ──────────────────────────────────────────────
+  if(id===B.MOSSY){
+    tex(ctx,s,{
+      A:'#787878',B:'#686868',C:'#888888',D:'#4a8a30',E:'#3a7020',F:'#5a9e3a',
+    },
+    'BBEEEEBBBBEEEEBB'+
+    'BFFFBBBBBBFFFBBB'+
+    'BFDDBBBBBBFFFBBB'+
+    'BFDEBBBBBBFFFBBB'+
+    'BFFFBBBBBBDFFBBB'+
+    'BFFFBBBBBBDFFBBB'+
+    'BEEEEEBBBEEEEEBB'+
+    'BBBBBBBBBBBBBBB '+
+    'BBEEEEBBBBEEEEBB'+
+    'BFFFBBBBBBFFFBBB'+
+    'BFFDBBBBBDFDFBBB'+
+    'BFFFBBBBBBFFFBBB'+
+    'BFFFBBBBBBDDFBBB'+
+    'BFFFBBBBBBFFFBBB'+
+    'BEEEEEBBBEEEEEBB'+
+    'BBBBBBBBBBBBBBBB'
+    );return;
+  }
+
+  // ── BIBLIOTHÈQUE ──────────────────────────────────────────────
+  if(id===B.BOOKSHELF){
+    tex(ctx,s,{
+      W:'#a87640',w:'#8a5e28',
+      a:'#3a3ab0',b:'#b03a3a',c:'#3ab03a',d:'#b0b03a',e:'#3ab0b0',f:'#b03ab0',g:'#884400',h:'#448844',
+    },
+    'WWWWWWWWWWWWWWWW'+
+    'wwwwwwwwwwwwwwww'+
+    'wabcdefghWWWWWWW'+
+    'wabcdefghWWWWWWW'+
+    'wabcdefghWWWWWWW'+
+    'wabcdefghWWWWWWW'+
+    'wwwwwwwwwwwwwwww'+
+    'WWWWWWWWWWWWWWWW'+
+    'WWWWWWWWWWWWWWWW'+
+    'wwwwwwwwwwwwwwww'+
+    'whgfedcbaWWWWWWW'+
+    'whgfedcbaWWWWWWW'+
+    'whgfedcbaWWWWWWW'+
+    'whgfedcbaWWWWWWW'+
+    'wwwwwwwwwwwwwwww'+
+    'WWWWWWWWWWWWWWWW'
+    );return;
+  }
+
+  // ── LAINE ──────────────────────────────────────────────
+  if(id===B.WOOL){
+    tex(ctx,s,{
+      A:'#cc4444',B:'#dd5555',C:'#bb3333',D:'#d04848',E:'#e06060',
+    },
+    'ABCDABCDABCDABCD'+
+    'BCDABCDABCDABCDA'+
+    'CDABCDABCDABCDAB'+
+    'DABCDABCDABCDABC'+
+    'ABCDABCDABCDABCD'+
+    'BCDABCDABCDABCDA'+
+    'CDABCDABCDABCDAB'+
+    'DABCDABCDABCDABC'+
+    'ABCDABCDABCDABCD'+
+    'BCDABCDABCDABCDA'+
+    'CDABCDABCDABCDAB'+
+    'DABCDABCDABCDABC'+
+    'ABCDABCDABCDABCD'+
+    'BCDABCDABCDABCDA'+
+    'CDABCDABCDABCDAB'+
+    'DABCDABCDABCDABC'
+    );return;
+  }
+
+  // ── TNT ──────────────────────────────────────────────
+  if(id===B.TNT){
+    tex(ctx,s,{
+      R:'#cc2020',W:'#eeeeee',r:'#aa1010',B:'#880000',
+    },
+    'WWWWWWWWWWWWWWWW'+
+    'WWWWWWWWWWWWWWWW'+
+    'WWWWWWWWWWWWWWWW'+
+    'RRRRRRRRRRRRRRRR'+
+    'RRRRRRRRRRRRRRRR'+
+    'RRRRRRRRRRRRRRRR'+
+    'RRRRRRRRRRRRRRRR'+
+    'RRRRRRRRRRRRRRRR'+
+    'RRRRRRRRRRRRRRRR'+
+    'RRRRRRRRRRRRRRRR'+
+    'RRRRRRRRRRRRRRRR'+
+    'RRRRRRRRRRRRRRRR'+
+    'RRRRRRRRRRRRRRRR'+
+    'WWWWWWWWWWWWWWWW'+
+    'WWWWWWWWWWWWWWWW'+
+    'WWWWWWWWWWWWWWWW'
+    );
+    // Lettres TNT
+    const ps=s/16;
+    ctx.fillStyle='#cc2020';
+    // T
+    [[2,4,4,1],[3,5,2,3]].forEach(([c,r,w,h])=>ctx.fillRect(Math.floor(c*ps),Math.floor(r*ps),Math.ceil(w*ps),Math.ceil(h*ps)));
+    // N
+    [[6,4,1,4],[7,5,1,1],[8,4,1,4],[7,6,1,1]].forEach(([c,r,w,h])=>ctx.fillRect(Math.floor(c*ps),Math.floor(r*ps),Math.ceil(w*ps),Math.ceil(h*ps)));
+    // T
+    [[10,4,4,1],[11,5,2,3]].forEach(([c,r,w,h])=>ctx.fillRect(Math.floor(c*ps),Math.floor(r*ps),Math.ceil(w*ps),Math.ceil(h*ps)));
+    return;
+  }
+
+  // ── ÉCHELLE ──────────────────────────────────────────────
+  if(id===B.LADDER){
+    tex(ctx,s,{
+      S:'#7a5010',s:'#8a6018',d:'#6a4010',
+    },
+    '  SS          SS'+
+    '  SS          SS'+
+    '  ssssssssssssss'+
+    '  dddddddddddddd'+
+    '  SS          SS'+
+    '  SS          SS'+
+    '  ssssssssssssss'+
+    '  dddddddddddddd'+
+    '  SS          SS'+
+    '  SS          SS'+
+    '  ssssssssssssss'+
+    '  dddddddddddddd'+
+    '  SS          SS'+
+    '  SS          SS'+
+    '  ssssssssssssss'+
+    '  dddddddddddddd'
+    );return;
+  }
+
+  // ── MINERAIS ──────────────────────────────────────────────
+  if(id===B.COAL_ORE){oreBlock(ctx,s,'#111111');return;}
+  if(id===B.IRON_ORE){oreBlock(ctx,s,'#c07a50');return;}
+  if(id===B.GOLD_ORE){oreBlock(ctx,s,'#fcee4a');return;}
+  if(id===B.DIAMOND_ORE){oreBlock(ctx,s,'#5decf5');return;}
+
+  // Défaut
+  {const ps=s/16;ctx.fillStyle='#888';ctx.fillRect(0,0,s,s);}
+}
+
+function oreBlock(ctx,s,oreColor){
   drawBlockToCanvas(ctx,B.STONE,s);
-  const p=(x,y,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(Math.floor(x*s),Math.floor(y*s),Math.ceil(w*s),Math.ceil(h*s));};
-  [{x:.15,y:.15,w:.2,h:.15},{x:.55,y:.1,w:.25,h:.18},{x:.1,y:.55,w:.18,h:.2},{x:.55,y:.55,w:.22,h:.22},{x:.35,y:.35,w:.15,h:.15}].forEach(r=>{
-    p(r.x,r.y,r.w,r.h,ore);});
+  const ps=s/16;
+  [[2,1,3,2],[7,0,2,3],[12,2,3,2],[1,6,2,3],[9,5,4,3],[13,8,2,3],[3,11,3,2],[8,10,3,3]].forEach(([c,r,w,h])=>{
+    ctx.fillStyle=oreColor;
+    ctx.fillRect(Math.floor(c*ps),Math.floor(r*ps),Math.ceil(w*ps),Math.ceil(h*ps));
+    ctx.fillStyle='rgba(0,0,0,0.35)';
+    ctx.fillRect(Math.floor(c*ps),Math.floor(r*ps),Math.ceil(w*ps),Math.ceil(ps));
+    ctx.fillRect(Math.floor(c*ps),Math.floor(r*ps),Math.ceil(ps),Math.ceil(h*ps));
+    ctx.fillStyle='rgba(255,255,255,0.2)';
+    ctx.fillRect(Math.floor(c*ps),Math.floor((r+h-1)*ps),Math.ceil(w*ps),Math.ceil(ps));
+  });
 }
 
 function drawBlock(ctx,id,x,y,size,light=1){
