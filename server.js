@@ -113,8 +113,10 @@ function generateChunk(cx, seed) {
       if (y >= WORLD_HEIGHT - 2) {
         block = B.BEDROCK;
       } else if (y > surfaceY) {
+        // Underground: solid stone/ores with possible caves
         const caveV = octave(wx * 0.09, y * 0.09, 3, 0.5, 1);
         if (caveV > 0.26) {
+          // Cave — only fill with water if cave is below sea level
           block = y < SEA_LEVEL ? B.WATER : B.AIR;
         } else {
           const fromBottom = WORLD_HEIGHT - y;
@@ -125,11 +127,17 @@ function generateChunk(cx, seed) {
           else if (oreN > 0.10) block = B.COAL_ORE;
           else block = B.STONE;
         }
+      } else if (y < surfaceY && y >= SEA_LEVEL) {
+        // Above underground but below surface AND above sea level → solid ground
+        block = isDesert ? B.SAND : B.DIRT;
       } else if (y < SEA_LEVEL) {
+        // Above the underground surface but below sea level → open water
         block = B.WATER;
       } else if (y === surfaceY) {
+        // Surface block
         block = isDesert ? B.SAND : isSnowy ? B.SNOW : B.GRASS;
       } else if (y > surfaceY - 4) {
+        // Sub-surface dirt/sand layer
         block = isDesert ? B.SAND : B.DIRT;
       }
 
@@ -554,6 +562,10 @@ function sanitizeName(name) {
   return (name || 'Player')
     .replace(/[<>&"]/g, '')
     .substring(0, 16)
+    .trim() || 'Player';
+}
+
+server.listen(PORT, () => console.log(`🎮 Minecraft 2D on port ${PORT}`));
     .trim() || 'Player';
 }
 
