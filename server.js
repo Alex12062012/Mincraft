@@ -106,9 +106,11 @@ function generateChunk(cx, seed) {
       if (y >= WORLD_HEIGHT - 2) {
         block = B.BEDROCK;
       } else if (y > surfaceY) {
+        // Underground: caves + ores
         const caveV = octave(wx * 0.09, y * 0.09, 3, 0.5, 1);
         if (caveV > 0.26) {
-          block = B.AIR;
+          // Cave air — fill with water if below sea level
+          block = y < SEA_LEVEL ? B.WATER : B.AIR;
         } else {
           const fromBottom = WORLD_HEIGHT - y;
           const oreN = Math.abs(octave(wx * 3.1 + 17, y * 3.1 + 17, 2, 0.5, 4));
@@ -118,12 +120,14 @@ function generateChunk(cx, seed) {
           else if (oreN > 0.10) block = B.COAL_ORE;
           else block = B.STONE;
         }
+      } else if (y < SEA_LEVEL) {
+        // Above surface but below sea level → open water
+        block = B.WATER;
       } else if (y === surfaceY) {
+        // Surface block — never grass underwater
         block = isDesert ? B.SAND : isSnowy ? B.SNOW : B.GRASS;
       } else if (y > surfaceY - 4) {
         block = isDesert ? B.SAND : B.DIRT;
-      } else if (surfaceY > SEA_LEVEL && y > SEA_LEVEL && y < surfaceY) {
-        block = B.WATER;
       }
 
       if (block !== B.AIR) blocks[key] = block;
